@@ -51,7 +51,9 @@ export class SerialConnection {
     if (!this.writer) {
       return;
     }
-    this.writer.write(bytes).catch((error) => this.lost(`cannot write to the serial port: ${error.message}`));
+    this.writer
+      .write(bytes)
+      .catch((error) => this.lost(`cannot write to the serial port: ${error.message}`));
   }
 
   // Pulses EN low through RTS, the same as esptool.

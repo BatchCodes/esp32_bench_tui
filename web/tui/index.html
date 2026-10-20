@@ -33,20 +33,23 @@
     <main id="start-panel">
       <h1>Bench TUI</h1>
       <p class="lead">
-        Connect to a board that runs the bench agent, then read its pins and control its outputs. The page
-        runs the bench TUI in your browser. You do not need to install anything. To install the bench agent
-        on a board, use the <a href="../">web flasher</a>.
+        Connect to a board that runs the bench agent, then read its pins and control its outputs.
+        The page runs the bench TUI in your browser. You do not need to install anything. To install
+        the bench agent on a board, use the <a href="../">web flasher</a>.
       </p>
 
       <p id="no-web-serial" class="warning" hidden>
-        <strong>This browser does not support Web Serial.</strong> Open this page in Chrome, Edge or Opera on
-        a desktop computer. To try the TUI with no board, open the <a href="../simulator/">simulator</a>.
+        <strong>This browser does not support Web Serial.</strong> Open this page in Chrome, Edge or
+        Opera on a desktop computer. To try the TUI with no board, open the
+        <a href="../simulator/">simulator</a>.
       </p>
 
       <section class="choose">
         <label for="project">Project</label>
         <select id="project">
-          <option value="open:" selected>Open mode: choose the board, then add pins in the TUI</option>
+          <option value="open:" selected>
+            Open mode: choose the board, then add pins in the TUI
+          </option>
         </select>
         <div id="project-file-row" hidden>
           <input id="project-file" type="file" accept=".yaml,.yml" />
@@ -58,8 +61,13 @@
       <ol>
         <li>Connect the board to this computer with a USB data cable.</li>
         <li>Choose a project, or open mode.</li>
-        <li>Click <strong>Connect board and start</strong>, then select the serial port of the board.</li>
-        <li>Use the TUI keys, the same as in the terminal. <kbd>ctrl</kbd>+<kbd>s</kbd> downloads the project file.</li>
+        <li>
+          Click <strong>Connect board and start</strong>, then select the serial port of the board.
+        </li>
+        <li>
+          Use the TUI keys, the same as in the terminal. <kbd>ctrl</kbd>+<kbd>s</kbd> downloads the
+          project file.
+        </li>
         <li><kbd>q</kbd> stops the TUI and frees the serial port.</li>
       </ol>
     </main>
