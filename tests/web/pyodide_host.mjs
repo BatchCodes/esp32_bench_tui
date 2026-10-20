@@ -1,21 +1,31 @@
-// Loads Pyodide with the host package of this repository, for the Node tests
-// of the web TUI. The wheels come from the Pyodide CDN and PyPI on the first
-// run, and Pyodide caches them in node_modules.
+// Loads Pyodide with the web TUI bundle, the same way as web/app/bench.js.
+// npm test builds the bundle in build/ first (the pretest script). PyYAML
+// comes from the Pyodide CDN on the first run, and Pyodide caches it in
+// node_modules.
 
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { loadPyodide } from "pyodide";
 
-export const REPO_DIR = fileURLToPath(new URL("../..", import.meta.url));
-export const TEXTUAL_VERSION = "8.2.8";
+export const BUNDLE_DIR = fileURLToPath(new URL("build/", import.meta.url));
+export const HOST_DIR = "/bench";
+const WHEELS_DIR = "/wheels";
 
 export async function loadHost() {
   const pyodide = await loadPyodide();
+  const bundle = JSON.parse(readFileSync(`${BUNDLE_DIR}bundle.json`, "utf8"));
   await pyodide.loadPackage(["micropip", "pyyaml"], { messageCallback: () => {} });
-  const micropip = pyodide.pyimport("micropip");
-  await micropip.install([`textual==${TEXTUAL_VERSION}`]);
-  pyodide.FS.mkdirTree("/repo");
-  pyodide.mountNodeFS("/repo", REPO_DIR);
-  pyodide.runPython('import sys; sys.path.insert(0, "/repo/host")');
+  pyodide.FS.mkdirTree(WHEELS_DIR);
+  const wheels = bundle.packages.map((item) => {
+    const target = `${WHEELS_DIR}/${item.split("/").pop()}`;
+    pyodide.FS.writeFile(target, readFileSync(`${BUNDLE_DIR}${item}`));
+    return `emfs:${target}`;
+  });
+  await pyodide.pyimport("micropip").install.callKwargs(wheels, { deps: false });
+  // unpackArchive takes a typed array, not a Node Buffer.
+  const archive = new Uint8Array(readFileSync(`${BUNDLE_DIR}${bundle.host_archive}`));
+  pyodide.unpackArchive(archive, "zip", { extractDir: HOST_DIR });
+  pyodide.runPython(`import sys; sys.path.insert(0, "${HOST_DIR}/host")`);
   return pyodide;
 }
 

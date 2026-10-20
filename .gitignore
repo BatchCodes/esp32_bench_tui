@@ -42,3 +42,4 @@ site/
 
 # Node packages of the web TUI tests
 node_modules/
+tests/web/build/

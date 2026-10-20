@@ -2,8 +2,9 @@
   "name": "bench-web-tests",
   "private": true,
   "type": "module",
-  "description": "Node tests of the web TUI. They run the host package in Pyodide.",
+  "description": "Node tests of the web TUI. They run the web TUI bundle from scripts/build_web_bundle.sh in Pyodide.",
   "scripts": {
+    "pretest": "bash ../../scripts/build_web_bundle.sh build",
     "test": "node --test"
   },
   "devDependencies": {

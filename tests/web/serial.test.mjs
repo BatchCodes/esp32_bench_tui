@@ -81,7 +81,7 @@ class SimulatorEnd:
         return self.simulator.read_line(timeout)
 
 
-config = load_project(Path("/repo/examples/pot_servo.yaml"))
+config = load_project(Path("/bench/examples/pot_servo.yaml"))
 transport = BufferTransport("web serial")
 link = AgentLink(transport, config, runner=ASYNCIO_RUNNER)
 bridge = SerialBridge(transport)
@@ -109,11 +109,17 @@ test("the agent link configures the simulator over the fake port", async () => {
   assert.deepEqual(statuses[0], ["connected", true]);
 
   await pyodide.runPythonAsync("link.start()");
-  assert.ok(await waitFor(() => link.snapshot().configured), "the link did not configure the agent");
+  assert.ok(
+    await waitFor(() => link.snapshot().configured),
+    "the link did not configure the agent",
+  );
   assert.ok(await waitFor(() => link.snapshot().values.has("pot")), "no pot value arrived");
 
   const seq = link.set_output("servo", 45.0);
-  assert.ok(await waitFor(() => link.snapshot().values.get("servo") === 45.0), "the servo value did not change");
+  assert.ok(
+    await waitFor(() => link.snapshot().values.get("servo") === 45.0),
+    "the servo value did not change",
+  );
   assert.ok(seq > 0);
 
   link.reset_board();
@@ -124,7 +130,10 @@ test("the agent link configures the simulator over the fake port", async () => {
   const disconnect = new Event("disconnect");
   Object.defineProperty(disconnect, "target", { value: port });
   connection.onDisconnect(disconnect);
-  assert.ok(await waitFor(() => link.snapshot().status.includes("link lost")), "the link did not see the disconnect");
+  assert.ok(
+    await waitFor(() => link.snapshot().status.includes("link lost")),
+    "the link did not see the disconnect",
+  );
   assert.equal(link.snapshot().connected, false);
   assert.ok(port.closed);
   assert.deepEqual(statuses.at(-1), ["the serial port was disconnected", false]);
