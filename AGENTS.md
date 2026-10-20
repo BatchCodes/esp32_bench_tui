@@ -10,7 +10,7 @@ ESP32 Bench TUI is a terminal tool for bench tests on ESP32 boards. The host sen
 - Board pins live in `boards/*.yaml` on the host. The firmware never hard-codes board pins.
 - The style rules for each language are in `.claude/rules/`.
 - Plans live in `.claude/plans/`. Use the `mdbd-plan` skill to plan and implement them.
-- "bench" is a working name. The project has no licence yet. Do not add a `LICENSE` file or SPDX headers until the user chooses a licence.
+- "bench" is a working name. The code is under the MIT licence in `LICENSE`. Do not add SPDX headers. Only add an image or another file made by someone else when its licence allows it, and record its source and licence in a `NOTICE.md` next to it.
 - Run `./scripts/ci.sh` before you report a change as done.
 
 <!-- The beads block below is managed by bd. -->

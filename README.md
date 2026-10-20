@@ -216,4 +216,4 @@ Refer to [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Licence
 
-The project has no licence yet. A licence is chosen before the first public release.
+The code is under the [MIT licence](LICENSE). The Olimex pinout image in [docs/images/boards](docs/images/boards) has its own licence. Refer to [docs/images/boards/NOTICE.md](docs/images/boards/NOTICE.md).
