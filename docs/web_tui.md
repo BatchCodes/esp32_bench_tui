@@ -18,7 +18,7 @@ To install the bench agent on a board first, use the [web flasher](web_flasher.m
    - **An example** loads one of the files in [examples](../examples).
    - **Open a project file** loads a `.yaml` file from your computer.
 4. Click **Connect board and start**, then select the serial port of the board.
-5. Use the same keys as in the terminal TUI. Refer to the Keys section of the [README](../README.md).
+5. Use the same keys as in the terminal TUI. Refer to [Using the TUI](using_the_tui.md).
 
 The differences from the terminal TUI:
 

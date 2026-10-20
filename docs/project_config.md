@@ -1,6 +1,6 @@
 # Project Configuration
 
-A project configuration file tells the host tool which board you use and what is connected to it. You do not need one to start: the TUI also runs with no file, and saves the pins that you add in the TUI with `ctrl+s`. Refer to the Open Mode section of the [README](../README.md). It is a YAML file. Give its path to the TUI with `--config`. The TUI loads the file again each time you save it.
+A project configuration file tells the host tool which board you use and what is connected to it. You do not need one to start: the TUI also runs with no file, and saves the pins that you add in the TUI with `ctrl+s`. Refer to the Open Mode section of [Using the TUI](using_the_tui.md#open-mode). It is a YAML file. Give its path to the TUI with `--config`. The TUI loads the file again each time you save it.
 
 Examples are in [examples](../examples):
 

@@ -1,6 +1,6 @@
 # Web Flasher
 
-The web flasher is a web page that flashes the bench agent firmware to a board from the browser. Use it when you do not want to install ESP-IDF or Docker. After the flash, run the bench TUI as usual. Refer to the [README](../README.md).
+The web flasher is a web page that flashes the bench agent firmware to a board from the browser. Use it when you do not want to install ESP-IDF or Docker. After the flash, open the [web TUI](web_tui.md), or start the bench TUI in a terminal. Refer to [Getting started](getting_started.md).
 
 The page is at <https://batchcodes.github.io/esp32_bench_tui/>.
 

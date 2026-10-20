@@ -14,8 +14,10 @@
     "DevKitM",
     "dialout",
     "Elecrow",
+    "epaper",
     "Espressif",
     "esptool",
+    "Gaggiuino",
     "Heltec",
     "idf",
     "improv",
@@ -50,6 +52,7 @@
     "usermod",
     "venv",
     "webloop",
+    "wifi",
     "WROOM",
     "xterm"
   ]
