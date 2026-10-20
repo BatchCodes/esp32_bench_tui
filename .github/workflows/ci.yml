@@ -68,8 +68,12 @@ jobs:
             variant: "usb_serial_jtag"
           - target: "esp32c3"
             variant: ""
+          - target: "esp32c3"
+            variant: "usb_serial_jtag"
           - target: "esp32c6"
             variant: ""
+          - target: "esp32c6"
+            variant: "usb_serial_jtag"
     steps:
       - uses: "actions/checkout@v4"
       - name: "Build"
@@ -77,3 +81,54 @@ jobs:
         run: |
           git config --global --add safe.directory "${GITHUB_WORKSPACE}"
           scripts/ci.sh build "${{ matrix.target }}" "${{ matrix.variant }}"
+      - name: "Collect the merged image for the web flasher"
+        id: "image"
+        shell: "bash"
+        run: |
+          name="${{ matrix.target }}"
+          if [[ -n "${{ matrix.variant }}" ]]; then
+            name="${name}_${{ matrix.variant }}"
+          fi
+          mkdir -p firmware_images
+          cp "firmware/bench_agent/build_ci_${name}/merged-binary.bin" "firmware_images/bench_agent_${name}.bin"
+          printf 'name=%s\n' "${name}" >>"${GITHUB_OUTPUT}"
+      - uses: "actions/upload-artifact@v4"
+        with:
+          name: "firmware-${{ steps.image.outputs.name }}"
+          path: "firmware_images/"
+          if-no-files-found: "error"
+
+  # Publishes the web flasher to GitHub Pages after each push to main. Set the
+  # Pages source to "GitHub Actions" in the repository settings first.
+  pages:
+    name: "Web flasher"
+    if: "github.event_name == 'push' && github.ref == 'refs/heads/main'"
+    needs: ["lint", "python_tests", "host_tests", "build"]
+    runs-on: "ubuntu-latest"
+    permissions:
+      contents: "read"
+      pages: "write"
+      id-token: "write"
+    concurrency:
+      group: "pages"
+      cancel-in-progress: true
+    environment:
+      name: "github-pages"
+      url: "${{ steps.deploy.outputs.page_url }}"
+    steps:
+      - uses: "actions/checkout@v4"
+        with:
+          fetch-depth: 0
+      - uses: "actions/download-artifact@v4"
+        with:
+          pattern: "firmware-*"
+          path: "firmware_images"
+          merge-multiple: true
+      - name: "Build the site"
+        run: "scripts/build_site.sh --images firmware_images"
+      - uses: "actions/configure-pages@v5"
+      - uses: "actions/upload-pages-artifact@v3"
+        with:
+          path: "site"
+      - id: "deploy"
+        uses: "actions/deploy-pages@v4"
