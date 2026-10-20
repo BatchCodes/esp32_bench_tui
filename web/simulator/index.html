@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bench TUI Simulator</title>
+    <meta
+      name="description"
+      content="Try the ESP32 Bench TUI in the browser with a simulated board. No hardware and no install."
+    />
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../app/app.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/lib/xterm.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.min.js"></script>
+    <script type="module">
+      import { startBenchPage } from "../app/bench.js";
+      startBenchPage({ mode: "simulator" });
+    </script>
+  </head>
+  <body>
+    <header class="bar">
+      <p class="brand">ESP32 Bench TUI</p>
+      <nav>
+        <a href="../">Flasher</a>
+        <a href="../tui/">TUI</a>
+        <a href="./" aria-current="page">Simulator</a>
+      </nav>
+      <p id="status" role="status">Loading.</p>
+      <button id="reconnect" class="secondary" hidden>Reconnect the board</button>
+    </header>
+
+    <main id="start-panel">
+      <h1>Bench TUI Simulator</h1>
+      <p class="lead">
+        Try the bench TUI with a simulated ESP32 board. The simulated bench agent answers the same as a real
+        board: the inputs change, and the outputs follow the keys that you press. It works in every browser,
+        and you need no hardware.
+      </p>
+      <p class="warning">
+        <strong>This is a demo.</strong> No board is connected. To install the bench agent on a board, use the
+        <a href="../">web flasher</a>. To connect to a board, open the <a href="../tui/">TUI page</a>.
+      </p>
+      <p id="no-web-serial" hidden></p>
+
+      <section class="choose">
+        <label for="project">Project</label>
+        <select id="project">
+          <option value="open:" selected>Open mode: choose the board, then add pins in the TUI</option>
+        </select>
+        <div id="project-file-row" hidden>
+          <input id="project-file" type="file" accept=".yaml,.yml" />
+        </div>
+        <button id="start" class="primary">Start the simulator</button>
+      </section>
+
+      <h2>Things to Try</h2>
+      <ul>
+        <li>Choose the example "A potentiometer, a servo and a PWM output". Press <kbd>p</kbd> for the Pins page.</li>
+        <li>Move to an output with <kbd>↑</kbd> and <kbd>↓</kbd>, and press <kbd>enter</kbd> to change it.</li>
+        <li>Press <kbd>space</kbd> on an input to see its chart.</li>
+        <li>Press <kbd>w</kbd> and <kbd>t</kbd> for the simulated Wi-Fi and Bluetooth scans.</li>
+        <li><kbd>ctrl</kbd>+<kbd>s</kbd> downloads the project file. <kbd>q</kbd> stops the TUI.</li>
+      </ul>
+    </main>
+
+    <div id="terminal" hidden></div>
+  </body>
+</html>
