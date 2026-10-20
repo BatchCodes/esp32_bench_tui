@@ -6,6 +6,7 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 REPO_DIR="$(dirname -- "${SCRIPT_DIR}")"
 APP_DIR="${REPO_DIR}/firmware/bench_agent"
 PYTHON_TESTS_DIR="${REPO_DIR}/tests/host_python"
+WEB_TESTS_DIR="${REPO_DIR}/tests/web"
 VENV_PYTHON="${REPO_DIR}/.venv/bin/python"
 FIRMWARE_TARGETS=(esp32 esp32s3 esp32c3 esp32c6)
 
@@ -21,6 +22,8 @@ Commands:
                    VARIANT adds firmware/bench_agent/sdkconfig.ci.VARIANT.
                    Also writes merged-binary.bin, one image to flash at
                    offset 0, for the web flasher.
+  web-tests        Build the web TUI bundle and run the Node tests in
+                   tests/web, if npm is installed.
   lint             Run shellcheck on the scripts, if shellcheck is installed.
   all              Run every command above, for every target.
 USAGE
@@ -46,6 +49,16 @@ run_python_tests() {
   fi
 
   "${python}" -m unittest discover -s "${PYTHON_TESTS_DIR}" -t "${REPO_DIR}"
+}
+
+run_web_tests() {
+  if ! command -v npm &>/dev/null; then
+    printf 'npm is not installed. Skipping the web TUI tests.\n'
+    return 0
+  fi
+
+  npm --prefix "${WEB_TESTS_DIR}" ci --no-audit --no-fund
+  npm --prefix "${WEB_TESTS_DIR}" test
 }
 
 run_host_tests() {
@@ -103,6 +116,7 @@ run_all() {
 
   run_lint
   run_python_tests
+  run_web_tests
   run_host_tests
 
   for target in "${FIRMWARE_TARGETS[@]}"; do
@@ -123,6 +137,9 @@ main() {
       ;;
     host-tests)
       run_host_tests
+      ;;
+    web-tests)
+      run_web_tests
       ;;
     build)
       if [[ $# -lt 2 ]]; then
