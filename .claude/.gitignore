@@ -1,2 +1,5 @@
 settings.local.json
 worktrees/
+
+# Plans are local working notes. Do not publish them.
+plans/
