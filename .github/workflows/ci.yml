@@ -1,0 +1,79 @@
+# Runs the same commands as scripts/ci.sh. The firmware jobs use the ESP-IDF
+# image at the version in scripts/esp_idf_version.txt. Keep the tag in sync.
+name: "CI"
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: "read"
+
+jobs:
+  lint:
+    name: "Lint"
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v4"
+      - name: "Shellcheck"
+        run: "scripts/ci.sh lint"
+      - uses: "DavidAnson/markdownlint-cli2-action@v19"
+
+  python_tests:
+    name: "Python tests"
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v4"
+      - uses: "actions/setup-python@v5"
+        with:
+          python-version: "3.13"
+      - name: "Install"
+        run: "pip install -e ."
+      - name: "Run tests"
+        run: "scripts/ci.sh python-tests"
+
+  docker_host:
+    name: "Host tool in Docker"
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v4"
+      - name: "Build the image and run the Python tests"
+        run: "scripts/bench_docker.sh --test"
+
+  host_tests:
+    name: "Firmware host tests"
+    runs-on: "ubuntu-latest"
+    container: "espressif/idf:v6.1"
+    steps:
+      - uses: "actions/checkout@v4"
+      - name: "Run host tests"
+        shell: "bash"
+        run: |
+          git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+          scripts/ci.sh host-tests
+
+  build:
+    name: "Build ${{ matrix.target }} ${{ matrix.variant }}"
+    runs-on: "ubuntu-latest"
+    container: "espressif/idf:v6.1"
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: "esp32"
+            variant: ""
+          - target: "esp32s3"
+            variant: ""
+          - target: "esp32s3"
+            variant: "usb_serial_jtag"
+          - target: "esp32c3"
+            variant: ""
+          - target: "esp32c6"
+            variant: ""
+    steps:
+      - uses: "actions/checkout@v4"
+      - name: "Build"
+        shell: "bash"
+        run: |
+          git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+          scripts/ci.sh build "${{ matrix.target }}" "${{ matrix.variant }}"

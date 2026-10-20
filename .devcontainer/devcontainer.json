@@ -1,0 +1,20 @@
+// Keep the image tag the same as scripts/esp_idf_version.txt.
+{
+  "name": "ESP-IDF v6.1",
+  "image": "espressif/idf:v6.1",
+  "containerEnv": {
+    "IDF_GIT_SAFE_DIR": "${containerWorkspaceFolder}"
+  },
+  // Linux only: remove the comment markers and set your board's port to flash from the container.
+  // "runArgs": ["--device=/dev/ttyUSB0"],
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "idf.espIdfPath": "/opt/esp/idf",
+        "idf.toolsPath": "/opt/esp",
+        "idf.gitPath": "/usr/bin/git"
+      },
+      "extensions": ["espressif.esp-idf-extension", "ms-vscode.cpptools", "ms-python.python"]
+    }
+  }
+}
