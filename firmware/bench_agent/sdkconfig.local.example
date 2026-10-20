@@ -1,0 +1,10 @@
+# Copy this file to sdkconfig.local for local settings. git ignores sdkconfig.local.
+# Delete sdkconfig in the build directory after a change, so the defaults apply.
+
+# Boards with native USB only (no USB-UART bridge): use the USB-Serial-JTAG port
+# as the console and the bench agent link. ESP32-S3, C3 and C6 only.
+# CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG=y
+# CONFIG_ESP_CONSOLE_UART_DEFAULT=n
+
+# Stop the outputs after a shorter time without the host.
+# CONFIG_BENCH_HOST_TIMEOUT_MS=1000

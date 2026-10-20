@@ -1,0 +1,20 @@
+menu "Bench agent"
+
+    config BENCH_HOST_TIMEOUT_MS
+        int "Host timeout (ms)"
+        range 500 60000
+        default 2000
+        help
+            When the host sends no message for this time, the agent sets every
+            output pin to its initial value and sends a watchdog event. The host
+            sends a ping every 500 ms.
+
+    config BENCH_READ_POLL_MS
+        int "Serial read poll time (ms)"
+        range 1 50
+        default 5
+        help
+            The longest time that the main loop waits for host input before it
+            checks the report timer and the watchdog.
+
+endmenu

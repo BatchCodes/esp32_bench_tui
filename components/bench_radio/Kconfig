@@ -1,0 +1,17 @@
+menu "Bench agent radio"
+
+    config BENCH_RADIO_WIFI
+        bool "Wi-Fi scan, connect and channel sniffer"
+        default y
+        help
+            Include the Wi-Fi features. The Wi-Fi driver starts only when the host
+            asks for a Wi-Fi feature.
+
+    config BENCH_RADIO_BLE
+        bool "Bluetooth Low Energy scan"
+        depends on BT_NIMBLE_ENABLED
+        default y
+        help
+            Include the BLE scan. Needs the NimBLE host with the observer role.
+
+endmenu
