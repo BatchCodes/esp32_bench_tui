@@ -50,6 +50,8 @@ jobs:
         shell: "bash"
         run: |
           git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+          # Actions does not run the image entrypoint, so load ESP-IDF here.
+          . "${IDF_PATH}/export.sh" >/dev/null
           scripts/ci.sh host-tests
 
   build:
@@ -80,6 +82,8 @@ jobs:
         shell: "bash"
         run: |
           git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+          # Actions does not run the image entrypoint, so load ESP-IDF here.
+          . "${IDF_PATH}/export.sh" >/dev/null
           scripts/ci.sh build "${{ matrix.target }}" "${{ matrix.variant }}"
       - name: "Collect the merged image for the web flasher"
         id: "image"
