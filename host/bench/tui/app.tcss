@@ -1,0 +1,93 @@
+#board-info {
+    width: 44;
+    padding: 0 1;
+    border-right: solid $primary;
+}
+
+#pin-map {
+    padding: 0 1;
+}
+
+#pin-table {
+    height: 1fr;
+}
+
+#pin-notes {
+    height: auto;
+    max-height: 8;
+    padding: 0 1;
+    border-top: solid $primary;
+}
+
+#link-info {
+    padding: 1 2;
+}
+
+#value-input {
+    dock: bottom;
+    margin-bottom: 2;
+}
+
+#status-bar {
+    dock: bottom;
+    height: 1;
+    margin-bottom: 1;
+    background: $panel;
+}
+
+#i2c-pane {
+    width: 1fr;
+    padding: 0 1;
+    border-right: solid $primary;
+}
+
+#uart-pane {
+    width: 1fr;
+    padding: 0 1;
+}
+
+#bus-help {
+    height: 1;
+}
+
+#wifi-help, #ble-help {
+    height: 1;
+}
+
+#wifi-status, #ble-status {
+    height: auto;
+    padding: 0 1;
+}
+
+#wifi-body {
+    height: 1fr;
+}
+
+#wifi-table {
+    width: 3fr;
+}
+
+#wifi-channels {
+    width: 1fr;
+    min-width: 36;
+    padding: 0 1;
+    border-left: solid $primary;
+}
+
+#ble-table {
+    height: 1fr;
+}
+
+#board-scroll {
+    height: 1fr;
+    align-horizontal: center;
+}
+
+#board-view {
+    width: auto;
+}
+
+#board-help {
+    height: 2;
+    padding: 0 1;
+}
