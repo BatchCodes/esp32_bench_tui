@@ -1,0 +1,32 @@
+{
+  "version": "0.2",
+  "language": "en-GB",
+  "ignorePaths": ["build/**", "build_*/**", "managed_components/**", ".beads/**", "sdkconfig*"],
+  "words": [
+    "BSSID",
+    "CrowPanel",
+    "dataclasses",
+    "devcontainer",
+    "DevKitC",
+    "DevKitM",
+    "dialout",
+    "Elecrow",
+    "Espressif",
+    "esptool",
+    "Heltec",
+    "idf",
+    "Kconfig",
+    "LAFVIN",
+    "LEDC",
+    "menuconfig",
+    "MOSI",
+    "Olimex",
+    "OpenOCD",
+    "PSRAM",
+    "pyserial",
+    "sdkconfig",
+    "SSID",
+    "UART",
+    "WROOM"
+  ]
+}

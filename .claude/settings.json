@@ -1,14 +1,28 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(./scripts/run_host_tests.sh)",
+      "Bash(./scripts/firmware.sh * build)",
+      "Bash(./scripts/ci.sh)",
+      "Bash(./scripts/bench_docker.sh --test)",
+      "Bash(python3 -m unittest *)",
+      "Bash(.venv/bin/python -m unittest *)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(bd *)"
+    ]
+  },
   "hooks": {
     "SessionStart": [
       {
+        "matcher": "",
         "hooks": [
           {
-            "command": "bd prime --hook-json",
-            "type": "command"
+            "type": "command",
+            "command": "if command -v bd >/dev/null 2>&1 && [ -d .beads ]; then bd prime --hook-json; fi"
           }
-        ],
-        "matcher": ""
+        ]
       }
     ]
   }

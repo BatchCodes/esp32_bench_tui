@@ -1,0 +1,4 @@
+{
+  // The skills in .claude/skills and the bd files come from outside this project.
+  "ignores": [".beads/**", "**/build/**", "**/build_*/**", "**/managed_components/**", ".venv/**", ".claude/skills/**", ".agents/**", ".cursor/**"]
+}

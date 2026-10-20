@@ -5,3 +5,34 @@
 .beads-credential-key
 .beads/proxieddb/
 *.gate.lock*
+
+# ESP-IDF build output
+build/
+build_*/
+sdkconfig
+sdkconfig.old
+managed_components/
+dependencies.lock
+
+# Local settings, for example Wi-Fi credentials
+sdkconfig.local
+*.local.yaml
+
+# Python
+__pycache__/
+*.egg-info/
+.venv/
+
+# Editors
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+
+# Local Claude Code state
+.claude/settings.local.json
+.claude/worktrees/
+
+# Flash backups of boards
+backups/
