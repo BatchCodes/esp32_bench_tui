@@ -39,3 +39,6 @@ backups/
 
 # Web flasher site from scripts/build_site.sh
 site/
+
+# Node packages of the web TUI tests
+node_modules/

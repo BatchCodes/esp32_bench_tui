@@ -1,0 +1,12 @@
+{
+  "name": "bench-web-tests",
+  "private": true,
+  "type": "module",
+  "description": "Node tests of the web TUI. They run the host package in Pyodide.",
+  "scripts": {
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "pyodide": "314.0.6"
+  }
+}
