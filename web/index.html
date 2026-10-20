@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bench Agent Flasher</title>
+    <meta
+      name="description"
+      content="Flash the ESP32 Bench TUI bench agent firmware to an ESP32 board from the browser."
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script
+      type="module"
+      src="https://unpkg.com/esp-web-tools@10.4.0/dist/web/install-button.js?module"
+    ></script>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="eyebrow">ESP32 Bench TUI</p>
+        <h1>Bench Agent Web Flasher</h1>
+        <p class="lead">
+          Flash the bench agent firmware to an ESP32 board from this page. You do not need to
+          install ESP-IDF or Python. After the flash, the bench TUI on your computer sends the pin
+          configuration to the board.
+        </p>
+      </header>
+
+      <section class="install">
+        <esp-web-install-button manifest="manifest.json">
+          <button slot="activate" class="primary">Connect and install</button>
+          <p slot="unsupported" class="notice">
+            This browser does not support Web Serial. Open this page in Chrome, Edge or Opera on a
+            desktop computer.
+          </p>
+          <p slot="not-allowed" class="notice">
+            Web Serial needs a secure page. Open this page over HTTPS or from
+            <code>localhost</code>.
+          </p>
+        </esp-web-install-button>
+        <p class="version">Firmware <span id="version">version unknown</span></p>
+      </section>
+
+      <section>
+        <h2>Steps</h2>
+        <ol>
+          <li>Connect the board to this computer with a USB data cable.</li>
+          <li>
+            Click <strong>Connect and install</strong>, then select the serial port of the board.
+          </li>
+          <li>
+            If the page cannot connect, hold the <kbd>BOOT</kbd> button of the board. Click
+            <strong>Connect and install</strong> again, and release <kbd>BOOT</kbd> when the flash
+            starts.
+          </li>
+          <li>
+            When the flash is done, close the install window. The window keeps the serial port open
+            until you close it.
+          </li>
+          <li>Start the bench TUI on your computer: <code>./bench</code>.</li>
+        </ol>
+        <p class="warning">
+          <strong>The flash replaces the firmware that is on the board.</strong> To keep a copy of
+          it, make a backup first:
+          <code>python3 -m esptool --port /dev/ttyUSB0 read_flash 0 ALL backup.bin</code>
+        </p>
+      </section>
+
+      <section>
+        <h2>Supported Chips</h2>
+        <p>The page reads the chip type from the board and selects the correct firmware.</p>
+        <div class="table">
+          <table>
+            <thead>
+              <tr>
+                <th>Chip</th>
+                <th>USB port of the board</th>
+                <th>Serial link of the bench agent</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>ESP32</td>
+                <td>USB-to-UART bridge</td>
+                <td>UART0</td>
+              </tr>
+              <tr>
+                <td rowspan="2">ESP32-S3, ESP32-C3, ESP32-C6</td>
+                <td>USB-to-UART bridge</td>
+                <td>UART0</td>
+              </tr>
+              <tr>
+                <td>native USB of the chip</td>
+                <td>USB-Serial-JTAG</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Use the same USB port for the bench TUI that you use for the flash.</p>
+      </section>
+    </main>
+
+    <footer>
+      <a href="https://github.com/BatchCodes/esp32_bench_tui"
+        >Source code and the bench TUI on GitHub</a
+      >
+    </footer>
+
+    <script>
+      fetch("manifest.json")
+        .then((response) => response.json())
+        .then((manifest) => {
+          document.getElementById("version").textContent = manifest.version;
+        })
+        .catch(() => {});
+    </script>
+  </body>
+</html>

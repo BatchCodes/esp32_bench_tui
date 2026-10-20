@@ -36,3 +36,6 @@ __pycache__/
 
 # Flash backups of boards
 backups/
+
+# Web flasher site from scripts/build_site.sh
+site/
