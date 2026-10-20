@@ -816,6 +816,11 @@ def create_link(
         transport: Transport = SimulatedTransport(mode=config.mode)
     else:
         transport = SerialTransport(resolve_port(port or config.port), config.baud)
+    return link_for(config, transport, runner)
+
+
+def link_for(config: ProjectConfig, transport: Transport, runner: str = THREAD_RUNNER) -> BaseLink:
+    """The link for the mode of a project configuration, on a given transport."""
     if config.mode == "log":
         return LogLink(transport, config, runner)
     return AgentLink(transport, config, runner)
