@@ -1,0 +1,14 @@
+# The Python wheels of the web TUI, with all their dependencies. Pyodide
+# installs these exact files with no dependency lookup, so that a new release
+# on PyPI cannot change the page. scripts/build_web_bundle.sh downloads them.
+# PyYAML comes from the Pyodide distribution, because it has a compiled part.
+# Keep textual at the version that the tests use.
+textual==8.2.8
+linkify-it-py==2.2.0
+markdown-it-py==4.2.0
+mdit-py-plugins==0.6.1
+mdurl==0.1.2
+platformdirs==4.13.5
+pygments==2.21.0
+rich==15.0.0
+typing-extensions==4.16.0

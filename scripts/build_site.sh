@@ -1,12 +1,14 @@
 #! /bin/bash
-# Build the web flasher site: the page in web/, the merged bench agent images
-# and the ESP Web Tools manifest. GitHub Actions publishes the site to GitHub
-# Pages. Refer to docs/web_flasher.md.
+# Build the GitHub Pages site: the pages in web/ (the web flasher, the web
+# TUI and the simulator), the merged bench agent images, the ESP Web Tools
+# manifest and the Python bundle of the web TUI. GitHub Actions publishes the
+# site. Refer to docs/web_flasher.md and docs/web_tui.md.
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 REPO_DIR="$(dirname -- "${SCRIPT_DIR}")"
 APP_DIR="${REPO_DIR}/firmware/bench_agent"
 WEB_DIR="${REPO_DIR}/web"
+BUILD_WEB_BUNDLE="${SCRIPT_DIR}/build_web_bundle.sh"
 DEFAULT_OUT_DIR="${REPO_DIR}/site"
 DEFAULT_SERVE_PORT="8000"
 
@@ -37,6 +39,8 @@ Options:
                      firmware/bench_agent/build_ci_<name> directory. Run
                      scripts/ci.sh build TARGET [VARIANT] first.
   -o, --out DIR      Write the site to DIR. Default: site/.
+  -n, --no-firmware  Build the site with no firmware images and no flasher
+                     manifest, to try the web TUI pages only.
   -s, --serve        Serve the site on http://localhost:${DEFAULT_SERVE_PORT} after the build.
   -h, --help         Show this help.
 USAGE
@@ -87,6 +91,7 @@ main() {
   local images_dir=""
   local out_dir="${DEFAULT_OUT_DIR}"
   local serve="no"
+  local firmware="yes"
   local entry
   local name
   local chip_family
@@ -117,6 +122,10 @@ main() {
         serve="yes"
         shift
         ;;
+      -n | --no-firmware)
+        firmware="no"
+        shift
+        ;;
       -h | --help)
         usage
         return 0
@@ -131,6 +140,14 @@ main() {
   rm -rf "${out_dir:?}"
   mkdir -p "${out_dir}/firmware"
   cp -r "${WEB_DIR}/." "${out_dir}/"
+  rm -f "${out_dir}/requirements.txt"
+  "${BUILD_WEB_BUNDLE}" "${out_dir}/app"
+
+  if [[ "${firmware}" == "no" ]]; then
+    printf 'Wrote the site to %s with no firmware images. The flasher page does not work.\n' "${out_dir}"
+    serve_site "${serve}" "${out_dir}"
+    return
+  fi
 
   for entry in "${IMAGES[@]}"; do
     read -r name chip_family serial_type <<<"${entry}"
@@ -158,11 +175,19 @@ main() {
 
   write_manifest "${out_dir}/manifest.json" "$(firmware_version)" "${builds[@]}"
   printf 'Wrote the site to %s.\n' "${out_dir}"
+  serve_site "${serve}" "${out_dir}"
+}
 
-  if [[ "${serve}" == "yes" ]]; then
-    printf 'Open http://localhost:%s in Chrome or Edge. Press Ctrl+C to stop.\n' "${DEFAULT_SERVE_PORT}"
-    python3 -m http.server --directory "${out_dir}" --bind 127.0.0.1 "${DEFAULT_SERVE_PORT}"
+serve_site() {
+  local serve="$1"
+  local out_dir="$2"
+
+  if [[ "${serve}" != "yes" ]]; then
+    return 0
   fi
+
+  printf 'Open http://localhost:%s in Chrome or Edge. Press Ctrl+C to stop.\n' "${DEFAULT_SERVE_PORT}"
+  python3 -m http.server --directory "${out_dir}" --bind 127.0.0.1 "${DEFAULT_SERVE_PORT}"
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

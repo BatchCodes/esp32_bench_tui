@@ -51,7 +51,10 @@ async function loadBench() {
   setStatus("Loading Textual and PyYAML.");
   await pyodide.loadPackage(["micropip", "pyyaml"]);
   const micropip = pyodide.pyimport("micropip");
-  await micropip.install(bundle.packages.map((item) => (item.endsWith(".whl") ? new URL(item, APP_DIR).href : item)));
+  // The bundle lists every wheel with its dependencies, so micropip does
+  // not look anything up on PyPI.
+  const wheels = bundle.packages.map((item) => new URL(item, APP_DIR).href);
+  await micropip.install.callKwargs(wheels, { deps: false });
 
   setStatus("Loading the bench host package.");
   const archive = await (await fetch(new URL(bundle.host_archive, APP_DIR))).arrayBuffer();
@@ -70,7 +73,9 @@ async function loadBench() {
 
 function fillProjects(bench) {
   const select = element("project");
-  for (const example of bench.session.list_examples().toJs({ dict_converter: Object.fromEntries })) {
+  for (const example of bench.session
+    .list_examples()
+    .toJs({ dict_converter: Object.fromEntries })) {
     const option = document.createElement("option");
     option.value = `example:${example.name}`;
     option.textContent = `Example: ${example.title}`;
@@ -105,7 +110,11 @@ function openTerminal(bench) {
   terminal.loadAddon(fit);
   terminal.open(container);
   fit.fit();
-  const browserTerminal = bench.driver.BrowserTerminal((data) => terminal.write(data), terminal.cols, terminal.rows);
+  const browserTerminal = bench.driver.BrowserTerminal(
+    (data) => terminal.write(data),
+    terminal.cols,
+    terminal.rows,
+  );
   terminal.onData((data) => browserTerminal.feed(data));
   terminal.onBinary((data) => browserTerminal.feed(data));
   const onResize = () => {
@@ -161,7 +170,8 @@ export async function startBenchPage({ mode }) {
         const baud = bench.session.project_baud(choice.kind, choice.name, choice.text);
         transport = bench.link.BufferTransport("web serial");
         connection = new SerialConnection(bench.bridge.SerialBridge(transport), {
-          onStatus: (text, connected) => setStatus(`Serial port: ${text}.`, connected ? "ready" : "error"),
+          onStatus: (text, connected) =>
+            setStatus(`Serial port: ${text}.`, connected ? "ready" : "error"),
         });
         await connection.open(port, baud);
         element("reconnect").hidden = false;
@@ -172,7 +182,13 @@ export async function startBenchPage({ mode }) {
       }
       showRunning(true);
       terminal = openTerminal(bench);
-      const result = await bench.session.run_session(choice.kind, choice.name, choice.text, downloadText, transport);
+      const result = await bench.session.run_session(
+        choice.kind,
+        choice.name,
+        choice.text,
+        downloadText,
+        transport,
+      );
       setStatus(result.message, result.ok ? "ready" : "error");
     } catch (error) {
       if (error.name !== "NotFoundError") {
