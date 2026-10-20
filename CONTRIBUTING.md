@@ -15,6 +15,7 @@ This document tells you how the repository is organised, how to build and test i
 | `tests/host_python/`    | Python unit tests for the host tool.                                            |
 | `scripts/`              | Install, build, flash and test scripts, and the pinned ESP-IDF version.         |
 | `docker/host/`          | The Docker image of the host tool.                                              |
+| `web/`                  | The web flasher page. Refer to [docs/web_flasher.md](docs/web_flasher.md).      |
 | `docs/`                 | Protocol, configuration and board profile documents.                            |
 
 The shared firmware components follow these rules:

@@ -55,6 +55,8 @@ You need Docker, or a local install. With Docker you install nothing else: the s
 
    The scripts use the only device in `/dev/serial/by-id/`. If more than one board is connected, give the port: `./scripts/firmware.sh --target esp32 flash /dev/ttyUSB0`.
 
+   You can also flash the bench agent from the browser, with no Docker and no ESP-IDF. Open the [web flasher](https://batchcodes.github.io/esp32_bench_tui/) in Chrome or Edge. Refer to [docs/web_flasher.md](docs/web_flasher.md).
+
 3. Start the TUI:
 
    ```bash
