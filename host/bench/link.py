@@ -1,9 +1,15 @@
 """Links between the host tool and a board.
 
-A link owns a transport (a serial port, or a simulated agent) and a worker
-thread. The worker reads lines from the board and keeps a LinkState. The TUI
-takes a copy of the state with snapshot() at each render tick, so it never
-waits for the board.
+A link owns a transport (a serial port, or a simulated agent) and a runner.
+The runner calls step() again and again. Each step opens the transport when it
+is closed, sends what is due, reads the lines from the board and keeps a
+LinkState. The TUI takes a copy of the state with snapshot() at each render
+tick, so it never waits for the board.
+
+- The thread runner is for a terminal. Its step waits up to READ_TIMEOUT_S for
+  the first line, so a line is handled as soon as it arrives.
+- The asyncio runner is for a browser (Pyodide), where Python has no threads.
+  Its step never waits, and the task sleeps ASYNC_STEP_S between steps.
 
 - AgentLink talks to the bench agent firmware: handshake, config, set, ping.
 - LogLink only reads the log output of any firmware and applies regex rules.
@@ -11,11 +17,13 @@ waits for the board.
 
 from __future__ import annotations
 
+import asyncio
 import copy
 import math
 import threading
 import time
 from collections import deque
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Protocol
@@ -28,6 +36,13 @@ READ_TIMEOUT_S = 0.05
 PING_PERIOD_S = 0.5
 HELLO_RETRY_S = 1.0
 REOPEN_DELAY_S = 1.0
+ASYNC_STEP_S = 0.02
+# The most lines that one step handles, so that a fast board cannot hold the
+# asyncio runner in one step.
+MAX_LINES_PER_STEP = 200
+THREAD_RUNNER = "thread"
+ASYNCIO_RUNNER = "asyncio"
+RUNNERS = (THREAD_RUNNER, ASYNCIO_RUNNER)
 RESET_PULSE_S = 0.1
 LOG_LINES = 500
 HISTORY_SAMPLES = 600
@@ -162,6 +177,83 @@ class SerialTransport:
         self._serial.rts = False
 
 
+class BufferTransport:
+    """A Transport on bytes that other code pushes in. In the browser, the
+    Web Serial glue calls connect() when the port opens, feed() with each
+    chunk it reads, and disconnect() when the port goes away. pyserial does
+    not work in a browser.
+
+    read_line() never waits, whatever the timeout, because a wait would
+    freeze the browser tab. Use it with the asyncio runner."""
+
+    def __init__(
+        self,
+        name: str,
+        write: Callable[[bytes], object] | None = None,
+        reset: Callable[[], object] | None = None,
+    ) -> None:
+        self.name = name
+        self._write = write
+        self._reset = reset
+        self._buffer = bytearray()
+        self._connected = False
+        self._open = False
+        self._lost_reason: str | None = None
+
+    def connect(self, write: Callable[[bytes], object], reset: Callable[[], object] | None = None) -> None:
+        """The port is open. write sends bytes to it, reset pulses the reset line."""
+        self._write = write
+        self._reset = reset
+        self._connected = True
+        self._lost_reason = None
+
+    def disconnect(self, reason: str = "the port closed") -> None:
+        """The port went away. The next read or write raises LinkError."""
+        self._connected = False
+        self._lost_reason = reason
+
+    def feed(self, data: bytes) -> None:
+        """Bytes that arrived from the port."""
+        if self._open:
+            self._buffer.extend(data)
+
+    def open(self) -> None:
+        if not self._connected:
+            raise LinkError(self._lost_reason or "no serial port is connected")
+        self._buffer.clear()
+        self._open = True
+
+    def close(self) -> None:
+        self._open = False
+        self._buffer.clear()
+
+    def read_line(self, timeout: float) -> str | None:
+        if not self._connected:
+            raise LinkError(self._lost_reason or "no serial port is connected")
+        newline = self._buffer.find(b"\n")
+        if newline < 0:
+            # A line longer than the protocol allows is passed on as it is,
+            # so that the buffer cannot grow without a limit.
+            if len(self._buffer) <= protocol.MAX_LINE_LENGTH:
+                return None
+            newline = len(self._buffer)
+        line = bytes(self._buffer[:newline])
+        del self._buffer[: newline + 1]
+        return line.decode("utf-8", errors="replace").rstrip("\r")
+
+    def write(self, data: bytes) -> None:
+        if not self._connected or self._write is None:
+            raise LinkError(self._lost_reason or "no serial port is connected")
+        try:
+            self._write(data)
+        except Exception as error:
+            raise LinkError(f"cannot write to {self.name}: {error}") from error
+
+    def reset_board(self) -> None:
+        if self._connected and self._reset is not None:
+            self._reset()
+
+
 @dataclass(frozen=True)
 class RadioSettings:
     wifi_scan_ms: int = 0
@@ -223,12 +315,15 @@ class LinkState:
 
 
 class BaseLink:
-    """The worker thread and the shared state of a link."""
+    """The runner and the shared state of a link."""
 
     can_control = False
 
-    def __init__(self, transport: Transport, config: ProjectConfig) -> None:
+    def __init__(self, transport: Transport, config: ProjectConfig, runner: str = THREAD_RUNNER) -> None:
+        if runner not in RUNNERS:
+            raise ValueError(f"runner must be one of {', '.join(RUNNERS)}, not {runner!r}")
         self.transport = transport
+        self.runner = runner
         self.config = config
         self._state = LinkState(mode=config.mode, port=transport.name)
         self._history: dict[str, deque[float]] = {}
@@ -243,8 +338,15 @@ class BaseLink:
         self._write_lock = threading.Lock()
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
+        self._task: asyncio.Task[None] | None = None
+        self._session_open = False
+        self._next_open_at = 0.0
 
     def start(self) -> None:
+        """Starts the runner. The asyncio runner needs a running event loop."""
+        if self.runner == ASYNCIO_RUNNER:
+            self._task = asyncio.get_running_loop().create_task(self._run_async())
+            return
         self._thread = threading.Thread(target=self._run, name=f"{type(self).__name__}", daemon=True)
         self._thread.start()
 
@@ -252,6 +354,9 @@ class BaseLink:
         self._stop.set()
         if self._thread is not None:
             self._thread.join(timeout=2.0)
+        if self._task is not None:
+            self._task.cancel()
+        self._session_open = False
         self.transport.close()
 
     def snapshot(self) -> LinkState:
@@ -352,20 +457,55 @@ class BaseLink:
         self._set_status("connected", connected=True)
         return True
 
+    def step(self, timeout: float = 0.0) -> None:
+        """One pass of the link. Opens the transport when it is closed and the
+        reopen delay is over, sends what is due and handles the lines that
+        have arrived. Only the first read waits, for up to timeout."""
+        now = time.monotonic()
+        if not self._session_open:
+            if now < self._next_open_at:
+                return
+            if not self._open():
+                self._next_open_at = now + REOPEN_DELAY_S
+                return
+            self._session_open = True
+            self._begin_session(now)
+        try:
+            self._session_step(now, timeout)
+        except LinkError as error:
+            self._set_status(f"link lost: {error}", connected=False)
+            self.transport.close()
+            self._session_open = False
+            self._next_open_at = time.monotonic() + REOPEN_DELAY_S
+
     def _run(self) -> None:
         while not self._stop.is_set():
-            if not self._open():
-                self._stop.wait(REOPEN_DELAY_S)
-                continue
-            try:
-                self._session()
-            except LinkError as error:
-                self._set_status(f"link lost: {error}", connected=False)
-            finally:
-                self.transport.close()
-            self._stop.wait(REOPEN_DELAY_S)
+            self.step(READ_TIMEOUT_S)
+            if not self._session_open:
+                self._stop.wait(max(0.0, self._next_open_at - time.monotonic()))
 
-    def _session(self) -> None:
+    async def _run_async(self) -> None:
+        while not self._stop.is_set():
+            self.step()
+            await asyncio.sleep(ASYNC_STEP_S)
+
+    def _read_lines(self, timeout: float) -> Iterator[str]:
+        """The lines that have arrived, at most MAX_LINES_PER_STEP. The first
+        read waits up to timeout."""
+        line = self.transport.read_line(timeout)
+        count = 0
+        while line is not None:
+            yield line
+            count += 1
+            if count >= MAX_LINES_PER_STEP or self._stop.is_set():
+                return
+            line = self.transport.read_line(0.0)
+
+    def _begin_session(self, now: float) -> None:
+        """Resets the session state after the transport opens."""
+        raise NotImplementedError
+
+    def _session_step(self, now: float, timeout: float) -> None:
         raise NotImplementedError
 
 
@@ -374,11 +514,13 @@ class AgentLink(BaseLink):
 
     can_control = True
 
-    def __init__(self, transport: Transport, config: ProjectConfig) -> None:
-        super().__init__(transport, config)
+    def __init__(self, transport: Transport, config: ProjectConfig, runner: str = THREAD_RUNNER) -> None:
+        super().__init__(transport, config, runner)
         self._seq = protocol.SeqCounter()
         self._config_dirty = threading.Event()
         self._config_seq = 0
+        self._hello_sent = 0.0
+        self._ping_sent = 0.0
 
     def update_config(self, config: ProjectConfig) -> None:
         super().update_config(config)
@@ -456,28 +598,27 @@ class AgentLink(BaseLink):
         self._write(protocol.encode("config", self._config_seq, **body))
         self._set_status("configuring")
 
-    def _session(self) -> None:
+    def _begin_session(self, now: float) -> None:
         with self._lock:
             self._state.hello = None
             self._state.configured = False
         self._set_status("waiting for the bench agent")
-        hello_sent = 0.0
-        ping_sent = time.monotonic()
-        while not self._stop.is_set():
-            now = time.monotonic()
-            with self._lock:
-                have_hello = self._state.hello is not None
-            if not have_hello and now - hello_sent >= HELLO_RETRY_S:
-                self._write(protocol.encode("hello", self._seq.next()))
-                hello_sent = now
-            if have_hello and self._config_dirty.is_set():
-                self._send_config()
-            if have_hello and now - ping_sent >= PING_PERIOD_S:
-                self._write(protocol.encode("ping", self._seq.next()))
-                ping_sent = now
-            line = self.transport.read_line(READ_TIMEOUT_S)
-            if line is not None:
-                self._handle_line(line)
+        self._hello_sent = 0.0
+        self._ping_sent = now
+
+    def _session_step(self, now: float, timeout: float) -> None:
+        with self._lock:
+            have_hello = self._state.hello is not None
+        if not have_hello and now - self._hello_sent >= HELLO_RETRY_S:
+            self._write(protocol.encode("hello", self._seq.next()))
+            self._hello_sent = now
+        if have_hello and self._config_dirty.is_set():
+            self._send_config()
+        if have_hello and now - self._ping_sent >= PING_PERIOD_S:
+            self._write(protocol.encode("ping", self._seq.next()))
+            self._ping_sent = now
+        for line in self._read_lines(timeout):
+            self._handle_line(line)
 
     def _handle_line(self, line: str) -> None:
         message = protocol.parse_line(line)
@@ -634,12 +775,11 @@ class AgentLink(BaseLink):
 class LogLink(BaseLink):
     """A board that runs any firmware. Reads values from its log output."""
 
-    def _session(self) -> None:
+    def _begin_session(self, now: float) -> None:
         self._set_status("reading the log")
-        while not self._stop.is_set():
-            line = self.transport.read_line(READ_TIMEOUT_S)
-            if line is None:
-                continue
+
+    def _session_step(self, now: float, timeout: float) -> None:
+        for line in self._read_lines(timeout):
             self._record_log(line)
             self._apply_rules(line)
 
@@ -666,7 +806,9 @@ def log_value(rule: LogValue, text: str) -> float | str:
         return text
 
 
-def create_link(config: ProjectConfig, port: str | None = None, simulate: bool = False) -> BaseLink:
+def create_link(
+    config: ProjectConfig, port: str | None = None, simulate: bool = False, runner: str = THREAD_RUNNER
+) -> BaseLink:
     """The link for a project configuration."""
     if simulate:
         from bench.simulator import SimulatedTransport
@@ -675,5 +817,5 @@ def create_link(config: ProjectConfig, port: str | None = None, simulate: bool =
     else:
         transport = SerialTransport(resolve_port(port or config.port), config.baud)
     if config.mode == "log":
-        return LogLink(transport, config)
-    return AgentLink(transport, config)
+        return LogLink(transport, config, runner)
+    return AgentLink(transport, config, runner)

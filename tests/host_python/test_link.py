@@ -1,14 +1,25 @@
 """Tests for the protocol messages, the links and the simulated agent."""
 
+import asyncio
 import time
 import unittest
 from collections import deque
 from pathlib import Path
+from unittest import mock
 
 from tests.host_python import host_path  # noqa: F401
 from bench import protocol
 from bench.config import load_project
-from bench.link import AgentLink, LogLink, log_value
+from bench.link import (
+    ASYNCIO_RUNNER,
+    REOPEN_DELAY_S,
+    AgentLink,
+    BufferTransport,
+    LinkError,
+    LogLink,
+    SerialTransport,
+    log_value,
+)
 from bench.simulator import SimulatedTransport
 
 REPO_DIR = Path(__file__).resolve().parents[2]
@@ -50,6 +61,31 @@ class ReplayTransport:
             return self.lines.popleft()
         time.sleep(timeout)
         return None
+
+
+def no_sleep(seconds: float) -> None:
+    raise AssertionError(f"slept for {seconds} s")
+
+
+async def async_wait_for(condition, timeout: float = WAIT_TIMEOUT_S) -> bool:
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if condition():
+            return True
+        await asyncio.sleep(0.01)
+    return False
+
+
+class FailingTransport(ReplayTransport):
+    """A Transport that cannot open."""
+
+    def __init__(self) -> None:
+        super().__init__([])
+        self.opens = 0
+
+    def open(self) -> None:
+        self.opens += 1
+        raise LinkError("no such port")
 
 
 class ProtocolTests(unittest.TestCase):
@@ -228,6 +264,172 @@ class LogLinkTests(unittest.TestCase):
         rule = next(value for value in config.log_values if value.name == "free_heap")
         self.assertAlmostEqual(log_value(rule, "2000"), 2.0)
         self.assertEqual(log_value(rule, "n/a"), "n/a")
+
+
+class AsyncioRunnerTests(unittest.IsolatedAsyncioTestCase):
+    """The runner for the browser, where Python has no threads."""
+
+    async def test_agent_handshake_and_set(self) -> None:
+        config = load_project(EXAMPLES_DIR / "pot_servo.yaml")
+        link = AgentLink(SimulatedTransport(sleep=no_sleep), config, runner=ASYNCIO_RUNNER)
+        link.start()
+        try:
+            self.assertIsNone(link._thread)
+            self.assertTrue(await async_wait_for(lambda: link.snapshot().configured))
+            self.assertTrue(await async_wait_for(lambda: "pot" in link.snapshot().values))
+            seq = link.set_output("servo", 45.0)
+            self.assertTrue(await async_wait_for(lambda: link.snapshot().values.get("servo") == 45.0))
+            self.assertIsNone(link.snapshot().results[seq])
+        finally:
+            link.stop()
+
+    async def test_log_rules(self) -> None:
+        config = load_project(EXAMPLES_DIR / "log_listen.yaml")
+        transport = ReplayTransport(["W (300) app: Lost the server, free heap 123456"])
+        link = LogLink(transport, config, runner=ASYNCIO_RUNNER)
+        link.start()
+        try:
+            self.assertTrue(await async_wait_for(lambda: "free_heap" in link.snapshot().values))
+        finally:
+            link.stop()
+        self.assertAlmostEqual(link.snapshot().values["free_heap"], 123.456)
+
+
+class StepTests(unittest.TestCase):
+    def test_unknown_runner(self) -> None:
+        config = load_project(EXAMPLES_DIR / "pot_servo.yaml")
+        with self.assertRaises(ValueError):
+            AgentLink(SimulatedTransport(), config, runner="process")
+
+    def test_reopen_waits_for_the_delay(self) -> None:
+        config = load_project(EXAMPLES_DIR / "pot_servo.yaml")
+        transport = FailingTransport()
+        link = AgentLink(transport, config)
+        link.step()
+        link.step()
+        self.assertEqual(transport.opens, 1)
+        self.assertIn("cannot open", link.snapshot().status)
+        self.assertFalse(link.snapshot().connected)
+        with mock.patch("bench.link.time.monotonic", return_value=time.monotonic() + REOPEN_DELAY_S + 0.1):
+            link.step()
+        self.assertEqual(transport.opens, 2)
+
+    def test_step_handles_lines_without_waiting(self) -> None:
+        config = load_project(EXAMPLES_DIR / "pot_servo.yaml")
+        link = AgentLink(SimulatedTransport(sleep=no_sleep), config)
+        for _ in range(5):
+            link.step()
+        state = link.snapshot()
+        self.assertIsNotNone(state.hello)
+        self.assertTrue(state.configured)
+        link.stop()
+
+    def test_simulator_read_line_zero_does_not_sleep(self) -> None:
+        transport = SimulatedTransport(sleep=no_sleep)
+        transport.open()
+        while transport.read_line(0.0) is not None:
+            pass
+        self.assertIsNone(transport.read_line(0.0))
+
+    def test_serial_read_line_zero_does_not_sleep(self) -> None:
+        transport = SerialTransport("/dev/null", 115200)
+        transport._serial = mock.Mock(in_waiting=0)
+        with mock.patch("bench.link.time.sleep", side_effect=no_sleep):
+            self.assertIsNone(transport.read_line(0.0))
+        transport._serial = mock.Mock(in_waiting=6)
+        transport._serial.read.return_value = b"hello\n"
+        with mock.patch("bench.link.time.sleep", side_effect=no_sleep):
+            self.assertEqual(transport.read_line(0.0), "hello")
+
+
+class BufferTransportTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.written: list[bytes] = []
+        self.resets = 0
+        self.transport = BufferTransport("web serial")
+
+    def connect(self) -> None:
+        def reset() -> None:
+            self.resets += 1
+
+        self.transport.connect(self.written.append, reset)
+
+    def test_open_needs_a_port(self) -> None:
+        with self.assertRaisesRegex(LinkError, "no serial port"):
+            self.transport.open()
+        with self.assertRaises(LinkError):
+            self.transport.write(b"x")
+
+    def test_split_lines(self) -> None:
+        self.connect()
+        self.transport.open()
+        self.transport.feed(b'{"type":"po')
+        self.assertIsNone(self.transport.read_line(1.0))
+        self.transport.feed(b'ng"}\r\nlog line\nrest')
+        self.assertEqual(self.transport.read_line(0.0), '{"type":"pong"}')
+        self.assertEqual(self.transport.read_line(0.0), "log line")
+        self.assertIsNone(self.transport.read_line(0.0))
+        self.transport.feed(b"\n")
+        self.assertEqual(self.transport.read_line(0.0), "rest")
+
+    def test_bytes_before_open_are_dropped(self) -> None:
+        self.connect()
+        self.transport.feed(b"boot noise\n")
+        self.transport.open()
+        self.assertIsNone(self.transport.read_line(0.0))
+
+    def test_bad_utf8_and_long_lines(self) -> None:
+        self.connect()
+        self.transport.open()
+        self.transport.feed(b"\xff\xfeok\n")
+        self.assertEqual(self.transport.read_line(0.0), "\ufffd\ufffdok")
+        self.transport.feed(b"x" * (protocol.MAX_LINE_LENGTH + 10))
+        self.assertEqual(len(self.transport.read_line(0.0)), protocol.MAX_LINE_LENGTH + 10)
+
+    def test_write_and_reset(self) -> None:
+        self.connect()
+        self.transport.open()
+        self.transport.write(b"hello\n")
+        self.transport.reset_board()
+        self.assertEqual(self.written, [b"hello\n"])
+        self.assertEqual(self.resets, 1)
+
+    def test_write_error_is_a_link_error(self) -> None:
+        def broken(data: bytes) -> None:
+            raise OSError("device lost")
+
+        self.transport.connect(broken)
+        self.transport.open()
+        with self.assertRaisesRegex(LinkError, "device lost"):
+            self.transport.write(b"x")
+
+    def test_disconnect(self) -> None:
+        self.connect()
+        self.transport.open()
+        self.transport.disconnect("the cable was pulled")
+        with self.assertRaisesRegex(LinkError, "cable"):
+            self.transport.read_line(0.0)
+        with self.assertRaisesRegex(LinkError, "cable"):
+            self.transport.open()
+
+    def test_agent_link_over_the_buffer(self) -> None:
+        config = load_project(EXAMPLES_DIR / "pot_servo.yaml")
+        link = AgentLink(self.transport, config)
+        link.step()
+        self.assertFalse(link.snapshot().connected)
+        self.connect()
+        with mock.patch("bench.link.time.monotonic", return_value=time.monotonic() + REOPEN_DELAY_S + 0.1):
+            link.step()
+        self.assertTrue(link.snapshot().connected)
+        self.assertTrue(self.written[0].startswith(b'{"type":"hello"'))
+        hello = protocol.encode("hello", 0, protocol=protocol.PROTOCOL_VERSION, agent="test", chip="esp32")
+        self.transport.feed(hello)
+        link.step()
+        self.assertEqual(link.snapshot().hello.chip, "esp32")
+        self.transport.disconnect()
+        link.step()
+        self.assertIn("link lost", link.snapshot().status)
+        self.assertFalse(link.snapshot().connected)
 
 
 if __name__ == "__main__":
