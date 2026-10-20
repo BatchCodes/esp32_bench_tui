@@ -121,9 +121,13 @@ def pick_board(purpose: str) -> str | None:
     return BoardPicker(purpose).run()
 
 
-async def pick_board_async(purpose: str, hint: str = COMMAND_LINE_HINT) -> str | None:
-    """pick_board for a running event loop, for example in a browser."""
-    return await BoardPicker(purpose, hint).run_async()
+async def pick_board_async(purpose: str, hint: str = COMMAND_LINE_HINT, driver_class: type | None = None) -> str | None:
+    """pick_board for a running event loop. In a browser, driver_class is the
+    browser terminal driver."""
+    picker = BoardPicker(purpose, hint)
+    if driver_class is not None:
+        picker.driver_class = driver_class
+    return await picker.run_async()
 
 
 def board_from_choice(choice: str) -> tuple[str, bool]:

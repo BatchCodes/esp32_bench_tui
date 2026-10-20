@@ -1,0 +1,127 @@
+/* Layout of the web TUI pages. The colour tokens come from ../style.css. */
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  align-items: center;
+  padding: 0.6rem 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.bar .brand {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.bar nav {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.95rem;
+}
+
+.bar nav a[aria-current="page"] {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+#status {
+  flex: 1 1 16rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+#status[data-kind="error"] {
+  color: #d64545;
+}
+
+#status[data-kind="ready"] {
+  color: var(--text);
+}
+
+button.secondary {
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--background);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+#start-panel {
+  width: 100%;
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 0 16px 3rem;
+}
+
+#start-panel h1 {
+  margin: 2rem 0 0.5rem;
+  font-size: clamp(1.6rem, 5vw, 2.1rem);
+}
+
+.choose {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.choose label {
+  font-weight: 600;
+}
+
+.choose select,
+.choose input[type="file"] {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--background);
+  color: var(--text);
+  font: inherit;
+}
+
+.choose button.primary {
+  justify-self: start;
+}
+
+button.primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+#terminal {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: #0c0c0c;
+}
+
+/* The fit addon counts the padding of .xterm, not of its container. */
+#terminal .xterm {
+  height: 100%;
+  padding: 4px;
+}
+
+body.running #start-panel {
+  display: none;
+}

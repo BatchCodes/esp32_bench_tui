@@ -518,8 +518,9 @@ class BenchApp(App):
         elif not self.config.devices and self.config.mode == "agent":
             notes.append("No pins yet. Press a and type a pin, for example: out 4, in 34, adc 32, pwm 13\n", style="cyan")
         else:
-            notes.append("a: give a pin another type (I2C, UART, servo, sensor) · ctrl+s: save to ", style="grey50")
-            notes.append(f"{self.config.path}\n", style="grey50")
+            # A save other than the default (the browser download) has no path on disk.
+            target = f"save to {self.config.path}" if self._save is save_to_file else f"download {self.config.path.name}"
+            notes.append(f"a: give a pin another type (I2C, UART, servo, sensor) · ctrl+s: {target}\n", style="grey50")
         for warning in self.config.warnings:
             notes.append(f"warning: {warning}\n", style="yellow")
         self.main_screen.query_one("#pin-notes", Static).update(notes)
