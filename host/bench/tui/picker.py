@@ -16,9 +16,10 @@ from textual.binding import Binding
 from textual.widgets import Footer, Header, OptionList, Static
 from textual.widgets.option_list import Option
 
-from bench.config import GENERIC_PREFIX, ConfigError, list_boards, list_chips, load_board, load_chip
+from bench.config import DEFAULT_CHIP, GENERIC_PREFIX, ConfigError, list_boards, list_chips, load_board, load_chip
 
 DETECT = "detect"
+COMMAND_LINE_HINT = "Use --board or --config to skip this list."
 STATE_DIR = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "bench"
 LAST_BOARD_FILE = STATE_DIR / "last_board"
 
@@ -85,16 +86,16 @@ class BoardPicker(App[str | None]):
         Binding("escape,q", "quit_picker", "Quit"),
     ]
 
-    def __init__(self, purpose: str) -> None:
+    def __init__(self, purpose: str, hint: str = COMMAND_LINE_HINT) -> None:
         super().__init__()
         self.choices = board_choices()
         self.purpose = purpose
+        self.hint = hint
 
     def compose(self) -> ComposeResult:
         yield Header()
         yield Static(
-            f"Choose the board for {self.purpose}. Up and down to move, enter to choose. "
-            "Use --board or --config to skip this list.",
+            f"Choose the board for {self.purpose}. Up and down to move, enter to choose. {self.hint}".rstrip(),
             id="picker-help",
         )
         yield OptionList(*[Option(choice.label, id=choice.key) for choice in self.choices])
@@ -118,3 +119,16 @@ class BoardPicker(App[str | None]):
 
 def pick_board(purpose: str) -> str | None:
     return BoardPicker(purpose).run()
+
+
+async def pick_board_async(purpose: str, hint: str = COMMAND_LINE_HINT) -> str | None:
+    """pick_board for a running event loop, for example in a browser."""
+    return await BoardPicker(purpose, hint).run_async()
+
+
+def board_from_choice(choice: str) -> tuple[str, bool]:
+    """The board name for a picker choice, and True when the TUI follows the
+    chip that the agent reports."""
+    if choice == DETECT:
+        return f"{GENERIC_PREFIX}{DEFAULT_CHIP}", True
+    return choice, False

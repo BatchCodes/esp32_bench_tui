@@ -86,6 +86,8 @@ class BoardPickerTests(unittest.TestCase):
         self.assertIn("olimex_esp32_poe_iso", keys)
         self.assertEqual(keys[-1], picker.DETECT)
         self.assertTrue(keys[-2].startswith("generic_"))
+        self.assertEqual(picker.board_from_choice(picker.DETECT), ("generic_esp32", True))
+        self.assertEqual(picker.board_from_choice("olimex_esp32_poe_iso"), ("olimex_esp32_poe_iso", False))
 
         async def run() -> None:
             with tempfile.TemporaryDirectory() as directory:

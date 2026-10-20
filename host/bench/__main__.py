@@ -67,14 +67,12 @@ def choose_board(args: argparse.Namespace, purpose: str) -> tuple[str, bool]:
     if args.check or not (sys.stdin.isatty() and sys.stdout.isatty()):
         return f"{GENERIC_PREFIX}{DEFAULT_CHIP}", True
 
-    from bench.tui.picker import DETECT, pick_board
+    from bench.tui.picker import board_from_choice, pick_board
 
     choice = pick_board(purpose)
     if choice is None:
         raise Cancelled
-    if choice == DETECT:
-        return f"{GENERIC_PREFIX}{DEFAULT_CHIP}", True
-    return choice, False
+    return board_from_choice(choice)
 
 
 def main(argv: list[str] | None = None) -> int:

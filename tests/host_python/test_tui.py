@@ -138,6 +138,49 @@ class TuiTests(unittest.TestCase):
 
         asyncio.run(run())
 
+    def test_save_callback_and_no_file_watch(self) -> None:
+        saved: list[tuple[Path, str]] = []
+
+        def download(path: Path, text: str) -> str:
+            saved.append((path, text))
+            return f"Downloaded {path.name}"
+
+        async def run() -> None:
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "bench.yaml"
+                shutil.copy(EXAMPLES_DIR / "led_button.yaml", path)
+                config = load_project(path)
+                app = BenchApp(config, AgentLink(SimulatedTransport(), config), save=download, watch_file=False)
+                async with app.run_test(size=TERMINAL_SIZE) as pilot:
+                    self.assertTrue(await wait_until(pilot, lambda: app.state.configured))
+                    await pilot.press("ctrl+s")
+                    status = app.main_screen.query_one("#status-bar")
+                    self.assertTrue(await wait_until(pilot, lambda: "Downloaded bench.yaml" in str(status.render())))
+                    # With no file watch, a change on disk is not loaded.
+                    path.write_text((EXAMPLES_DIR / "pot_servo.yaml").read_text())
+                    await pilot.pause(1.5)
+                    self.assertNotIn("pot", app.state.values)
+                self.assertEqual(path.read_text(), (EXAMPLES_DIR / "pot_servo.yaml").read_text())
+
+        asyncio.run(run())
+        self.assertEqual(len(saved), 1)
+        self.assertEqual(saved[0][0].name, "bench.yaml")
+        self.assertIn("board: olimex_esp32_poe_iso", saved[0][1])
+
+    def test_save_error(self) -> None:
+        def broken(path: Path, text: str) -> str:
+            raise OSError("the browser blocked the download")
+
+        async def run() -> None:
+            config = load_project(EXAMPLES_DIR / "led_button.yaml")
+            app = BenchApp(config, AgentLink(SimulatedTransport(), config), save=broken, watch_file=False)
+            async with app.run_test(size=TERMINAL_SIZE) as pilot:
+                await pilot.press("ctrl+s")
+                status = app.main_screen.query_one("#status-bar")
+                self.assertTrue(await wait_until(pilot, lambda: "Not saved: the browser blocked" in str(status.render())))
+
+        asyncio.run(run())
+
     def test_bus_page(self) -> None:
         async def run() -> None:
             config = load_project(EXAMPLES_DIR / "bus_sensors.yaml")

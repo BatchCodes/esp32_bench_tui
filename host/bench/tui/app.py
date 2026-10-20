@@ -8,6 +8,7 @@ reads the link state with snapshot() at each tick and never waits for the board.
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 from rich.table import Table
@@ -60,6 +61,12 @@ BLE_COLUMNS = (("Address", 17), ("Name or type", 30), ("RSSI", 8), ("Signal", 12
 COLUMN_WIDTHS = {"Name": 24, "GPIO": 13, "Type": 12, "Value": 28, "Edges": 6, "History": SPARK_WIDTH, "Age": 7}
 
 
+def save_to_file(path: Path, text: str) -> str:
+    """The default save of BenchApp."""
+    path.write_text(text)
+    return f"Saved to {path}"
+
+
 class BenchApp(App):
     CSS_PATH = "app.tcss"
     # The page decides the focus. Automatic focus would pick the hidden input.
@@ -93,11 +100,25 @@ class BenchApp(App):
         Binding("q", "quit", "Quit"),
     ]
 
-    def __init__(self, config: ProjectConfig, link: BaseLink, auto_board: bool = False, watch_all: bool = False) -> None:
+    def __init__(
+        self,
+        config: ProjectConfig,
+        link: BaseLink,
+        auto_board: bool = False,
+        watch_all: bool = False,
+        save: Callable[[Path, str], str] | None = None,
+        watch_file: bool = True,
+    ) -> None:
+        """save stores the YAML text of the project and returns the message to
+        show. It raises OSError when it fails. The default writes the file. The
+        browser gives a save that downloads the file. watch_file loads the file
+        again when it changes on disk. The browser has no file to watch."""
         super().__init__()
         self.config = config
         self.link = link
         self.state = LinkState()
+        self._save = save or save_to_file
+        self._watch_file = watch_file
         self._config_mtime = self._mtime(config.path)
         # Open mode with no board given: use the generic board of the chip
         # that the agent reports.
@@ -185,7 +206,8 @@ class BenchApp(App):
         self._focus_page()
         self.link.start()
         self.set_interval(RENDER_TICK_S, self._tick)
-        self.set_interval(CONFIG_CHECK_S, self._check_config)
+        if self._watch_file:
+            self.set_interval(CONFIG_CHECK_S, self._check_config)
         self._tick()
 
     def on_unmount(self) -> None:
@@ -348,12 +370,12 @@ class BenchApp(App):
     def action_save_config(self) -> None:
         path = self.config.path
         try:
-            path.write_text(dump_project(self.config))
+            message = self._save(path, dump_project(self.config))
         except OSError as error:
-            self._show_result(Text(f"Not saved: {error.strerror}", style="red"))
+            self._show_result(Text(f"Not saved: {error.strerror or error}", style="red"))
             return
         self._config_mtime = self._mtime(path)
-        self._show_result(Text(f"Saved to {path}", style="green"))
+        self._show_result(Text(message, style="green"))
 
     def _render_tick(self) -> None:
         self.state = self.link.snapshot()
