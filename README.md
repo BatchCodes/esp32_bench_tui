@@ -57,6 +57,8 @@ You need Docker, or a local install. With Docker you install nothing else: the s
 
    You can also flash the bench agent from the browser, with no Docker and no ESP-IDF. Open the [web flasher](https://batchcodes.github.io/esp32_bench_tui/) in Chrome or Edge. Refer to [docs/web_flasher.md](docs/web_flasher.md).
 
+   The TUI also runs in the browser. Open the [web TUI](https://batchcodes.github.io/esp32_bench_tui/tui/) to connect to the board, or the [simulator](https://batchcodes.github.io/esp32_bench_tui/simulator/) to try the TUI with no board. Refer to [docs/web_tui.md](docs/web_tui.md).
+
 3. Start the TUI:
 
    ```bash

@@ -70,5 +70,6 @@ Open <http://localhost:8000> in Chrome or Edge. The site includes only the image
 
 ## See also
 
+- [Web TUI](web_tui.md)
 - [Wire protocol](protocol.md)
 - [Board profiles](board_profiles.md)

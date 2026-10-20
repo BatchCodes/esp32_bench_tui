@@ -4,19 +4,20 @@ This document tells you how the repository is organised, how to build and test i
 
 ## Repository Layout
 
-| Path                    | Contents                                                                        |
-| ----------------------- | ------------------------------------------------------------------------------- |
-| `firmware/bench_agent/` | The bench agent, one ESP-IDF app for all supported chips.                       |
-| `components/`           | Shared ESP-IDF components that the bench agent uses.                            |
-| `host/bench/`           | The Python host tool: configuration loader, board links and the Textual TUI.    |
-| `boards/`               | Board profiles, one YAML file for each board.                                   |
-| `examples/`             | Example project configuration files.                                            |
-| `tests/host/`           | Firmware host tests. They run on your computer with the ESP-IDF `linux` target. |
-| `tests/host_python/`    | Python unit tests for the host tool.                                            |
-| `scripts/`              | Install, build, flash and test scripts, and the pinned ESP-IDF version.         |
-| `docker/host/`          | The Docker image of the host tool.                                              |
-| `web/`                  | The web flasher page. Refer to [docs/web_flasher.md](docs/web_flasher.md).      |
-| `docs/`                 | Protocol, configuration and board profile documents.                            |
+| Path                    | Contents                                                                                                                                               |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `firmware/bench_agent/` | The bench agent, one ESP-IDF app for all supported chips.                                                                                              |
+| `components/`           | Shared ESP-IDF components that the bench agent uses.                                                                                                   |
+| `host/bench/`           | The Python host tool: configuration loader, board links and the Textual TUI.                                                                           |
+| `boards/`               | Board profiles, one YAML file for each board.                                                                                                          |
+| `examples/`             | Example project configuration files.                                                                                                                   |
+| `tests/host/`           | Firmware host tests. They run on your computer with the ESP-IDF `linux` target.                                                                        |
+| `tests/host_python/`    | Python unit tests for the host tool.                                                                                                                   |
+| `scripts/`              | Install, build, flash and test scripts, and the pinned ESP-IDF version.                                                                                |
+| `docker/host/`          | The Docker image of the host tool.                                                                                                                     |
+| `web/`                  | The web flasher page, and the web TUI and simulator pages. Refer to [docs/web_flasher.md](docs/web_flasher.md) and [docs/web_tui.md](docs/web_tui.md). |
+| `tests/web/`            | Node tests of the web TUI. They run the web TUI bundle in Pyodide.                                                                                     |
+| `docs/`                 | Protocol, configuration and board profile documents.                                                                                                   |
 
 The shared firmware components follow these rules:
 
@@ -51,6 +52,12 @@ Or in Docker:
 
 ```bash
 ./scripts/bench_docker.sh --test
+```
+
+The web TUI has Node tests in `tests/web`. They need Node 22 and npm, and they download PyYAML from the Pyodide CDN on the first run. Refer to [docs/web_tui.md](docs/web_tui.md).
+
+```bash
+./scripts/ci.sh web-tests
 ```
 
 ## Firmware
