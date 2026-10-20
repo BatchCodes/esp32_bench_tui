@@ -7,8 +7,9 @@ link: uart0
 usb: "CH340 USB-UART bridge on UART0"
 verified: false
 sources:
-  - "Olimex ESP32-PoE-ISO pinout image (esp32-poe-iso-gpio_1280x853.png, supplied by the user on 2026-10-16): EXT1, EXT2 and UEXT pin order and pin notes"
+  - "Olimex ESP32-POE-ISO product page and GPIO pinout, https://www.olimex.com/Products/IoT/ESP32/ESP32-POE-ISO/open-source-hardware: EXT1, EXT2 and UEXT pin order and pin notes"
   - "Olimex ESP32-POE-ISO schematic, https://github.com/OLIMEX/ESP32-POE-ISO/tree/master/HARDWARE"
+  - "Olimex ESP32-POE-ISO GPIO image, docs/images/boards/olimex_esp32_poe_iso_pinout.png, from DOCUMENTS/OLD/ESP32-POE-ISO-GPIO.png in the Olimex repository (CERN OHL v1.2)"
 # The EXT1 and EXT2 headers expose only these GPIOs. The Ethernet pins are
 # not on a header.
 pins: [0, 1, 2, 3, 4, 5, 13, 14, 15, 16, 32, 33, 34, 35, 36, 39]

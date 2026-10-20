@@ -29,6 +29,7 @@
     "sdkconfig",
     "SSID",
     "UART",
+    "UEXT",
     "usermod",
     "WROOM"
   ]

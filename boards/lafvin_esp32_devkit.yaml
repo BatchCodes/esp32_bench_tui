@@ -7,7 +7,8 @@ link: uart0
 usb: "USB-UART bridge on UART0 (CH340 on the LAFVIN board, CP2102 on some other 30-pin boards)"
 verified: false
 sources:
-  - "30-pin ESP-WROOM-32 DevKit pinout image (esp32_wroom.png, botland, supplied by the user on 2026-10-16): header pin order"
+  - "Botland 30-pin ESP-WROOM-32 DevKit V1 product page and pinout, https://botland.store/esp32-modules/8893-esp32-wifi-bt-42-platform-with-esp-wroom-32-module-compatible-with-esp32-devkit-5904422337438.html: header pin order"
+  - "Silkscreen labels of the LAFVIN board: header labels"
   - "LAFVIN ESP32 Basic Starter Kit tutorial, board pinout page"
   - "van_sensors README, development board table"
 # The 30-pin board has no GPIO 0 (BOOT button only) and no flash pins on its
