@@ -1,0 +1,45 @@
+name: heltec_wireless_paper_v1_2
+title: Heltec Wireless Paper V1.2
+chip: esp32s3
+flash_mb: 8
+psram_mb: 0
+link: uart0
+usb: "CP2102 USB-UART bridge on UART0"
+verified: false
+sources:
+  - "van_sensors docs/renogy_displays/heltec_wireless_paper.md"
+  - "Heltec Wireless Paper pin map, https://heltec.org/project/wireless-paper/"
+pins: all
+reserved:
+  2: "E-paper MOSI"
+  3: "E-paper SCK"
+  4: "E-paper CS"
+  5: "E-paper DC"
+  6: "E-paper RST"
+  7: "E-paper BUSY"
+  8: "LoRa SX1262 NSS"
+  9: "LoRa SX1262 SCK"
+  10: "LoRa SX1262 MOSI"
+  11: "LoRa SX1262 MISO"
+  12: "LoRa SX1262 RST"
+  13: "LoRa SX1262 BUSY"
+  14: "LoRa SX1262 DIO1"
+  45: "Vext switch for the e-paper panel, active low"
+notes:
+  19: "Battery ADC enable. Drive it low to read the battery."
+  20: "Battery voltage, divider about 1:2."
+onboard:
+  - id: led
+    gpio: 18
+    type: led
+    active_low: false
+    notes: "White on-board LED."
+  - id: prg_button
+    gpio: 0
+    type: button
+    active_low: true
+    notes: "PRG button. Do not hold it at reset."
+  - id: battery
+    gpio: 20
+    type: adc
+    notes: "Battery voltage through a divider of about 1:2. Drive GPIO 19 low first."

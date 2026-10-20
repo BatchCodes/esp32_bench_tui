@@ -1,0 +1,50 @@
+name: olimex_esp32_poe_iso
+title: Olimex ESP32-POE-ISO
+chip: esp32
+flash_mb: 4
+psram_mb: 0
+link: uart0
+usb: "CH340 USB-UART bridge on UART0"
+verified: false
+sources:
+  - "Olimex ESP32-PoE-ISO pinout image (esp32-poe-iso-gpio_1280x853.png, supplied by the user on 2026-10-16): EXT1, EXT2 and UEXT pin order and pin notes"
+  - "Olimex ESP32-POE-ISO schematic, https://github.com/OLIMEX/ESP32-POE-ISO/tree/master/HARDWARE"
+# The EXT1 and EXT2 headers expose only these GPIOs. The Ethernet pins are
+# not on a header.
+pins: [0, 1, 2, 3, 4, 5, 13, 14, 15, 16, 32, 33, 34, 35, 36, 39]
+reserved:
+  12: "Ethernet PHY power enable"
+  17: "Ethernet RMII clock output to the LAN8720"
+  18: "Ethernet MDIO"
+  19: "Ethernet RMII TXD0"
+  21: "Ethernet RMII TX_EN"
+  22: "Ethernet RMII TXD1"
+  23: "Ethernet MDC"
+  25: "Ethernet RMII RXD0"
+  26: "Ethernet RMII RXD1"
+  27: "Ethernet RMII CRS_DV"
+notes:
+  0: "Used for programming. Free after that."
+  1: "Used for programming. Free after that."
+  2: "SD card DAT0. Free if no SD card is used. Also on UEXT pin 8 (SPI MOSI)."
+  4: "Also on UEXT pin 3 (UART TX)."
+  5: "Also on UEXT pin 10 (SPI CS)."
+  13: "Also on UEXT pin 6 (I2C SDA)."
+  14: "SD card CLK. Free if no SD card is used. Also on UEXT pin 9 (SPI SCK)."
+  15: "SD card CMD. Free if no SD card is used. Also on UEXT pin 7 (SPI MISO)."
+  16: "Also on UEXT pin 5 (I2C SCL)."
+  34: "BUT1 button, with a 10 kOhm pull-up."
+  35: "Free, but can measure the battery voltage when the SENS_BAT_E1 jumper is closed."
+  36: "Also on UEXT pin 4 (UART RX)."
+  39: "Measures the external power supply voltage."
+onboard:
+  - id: button
+    gpio: 34
+    type: button
+    active_low: true
+    notes: "BUT1, with an external 10 kOhm pull-up. GPIO 34 has no internal pull resistor."
+# Header pins from the antenna end to the USB and Ethernet end, with the board
+# in portrait and the parts facing you. EXT1 is on the left (pin 1 at the
+# antenna end) and EXT2 on the right. Source: the Olimex pinout image above.
+header_left: ["+5V", "+3.3V", "GND", "EN", 0, 1, 2, 3, 4, 5]
+header_right: [39, 36, 35, 34, 33, 32, 16, 15, 14, 13]

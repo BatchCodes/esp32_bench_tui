@@ -1,0 +1,27 @@
+name: esp32_s3_devkitc_1
+title: Espressif ESP32-S3-DevKitC-1
+chip: esp32s3
+flash_mb: 8
+psram_mb: 0
+link: uart0
+usb: "Two USB ports. The UART port has a USB-UART bridge on UART0. The USB port is the native USB-Serial-JTAG port."
+verified: false
+sources:
+  - "Espressif ESP32-S3-DevKitC-1 v1.1 user guide, header block tables J1 and J3"
+  - "ESP32-S3-DevKitC-1 user guide, header block table, https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-devkitc-1/"
+pins: all
+reserved: {}
+notes:
+  38: "RGB LED (WS2812) data on board v1.1."
+  48: "RGB LED (WS2812) data on board v1.0."
+onboard:
+  - id: boot_button
+    gpio: 0
+    type: button
+    active_low: true
+    notes: "BOOT button. Do not hold it at reset."
+# Header pins from the antenna end to the USB end. J1 is on the left and J3
+# on the right, with the board in portrait and the parts facing you. The pin
+# order is from the source. The side and the end are not checked on a board yet.
+header_left: ["3V3", "3V3", "RST", 4, 5, 6, 7, 15, 16, 17, 18, 8, 3, 46, 9, 10, 11, 12, 13, 14, "5V", "GND"]
+header_right: ["GND", 43, 44, 1, 2, 42, 41, 40, 39, 38, 37, 36, 35, 0, 45, 48, 47, 21, 20, 19, "GND", "GND"]

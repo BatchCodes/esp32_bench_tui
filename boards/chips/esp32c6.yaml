@@ -1,0 +1,30 @@
+# ESP32-C6 GPIO facts. Source: ESP32-C6 Series Datasheet v1.x, sections
+# "Pin Overview", "Strapping Pins" and "Peripheral Pin Configurations", and the
+# ESP-IDF GPIO and ADC API references for esp32c6.
+chip: esp32c6
+title: ESP32-C6
+gpios: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+uart0: {tx: 16, rx: 17}
+input_only: []
+reserved:
+  24: "SPI flash CS0"
+  25: "SPI flash Q"
+  26: "SPI flash WP"
+  27: "SPI flash VDD_SPI"
+  28: "SPI flash HD"
+  29: "SPI flash CLK"
+  30: "SPI flash D"
+strapping:
+  4: "JTAG signal source (MTMS)."
+  5: "JTAG signal source (MTDI)."
+  8: "Boot mode. Must be high at reset to enter download mode."
+  9: "Boot mode. Low at reset starts the ROM download mode."
+  15: "JTAG signal source. Only read when the eFuses select it."
+adc1: [0, 1, 2, 3, 4, 5, 6]
+adc2: []
+adc2_conflicts_with_wifi: false
+touch: []
+dac: []
+notes:
+  12: "Native USB D-. Using it stops the USB-Serial-JTAG port."
+  13: "Native USB D+. Using it stops the USB-Serial-JTAG port."

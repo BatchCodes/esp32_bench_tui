@@ -1,0 +1,38 @@
+# ESP32-S3 GPIO facts. Source: ESP32-S3 Series Datasheet v1.x, sections
+# "Pin Overview", "Strapping Pins" and "Peripheral Pin Configurations", and the
+# ESP-IDF GPIO and ADC API references for esp32s3.
+chip: esp32s3
+title: ESP32-S3
+gpios: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48]
+uart0: {tx: 43, rx: 44}
+input_only: []
+reserved:
+  26: "SPI flash or PSRAM CS1"
+  27: "SPI flash HD"
+  28: "SPI flash WP"
+  29: "SPI flash CS0"
+  30: "SPI flash CLK"
+  31: "SPI flash Q"
+  32: "SPI flash D"
+strapping:
+  0: "Boot mode. Low at reset starts the ROM download mode."
+  3: "JTAG signal source. Only read when the eFuses select it."
+  45: "Flash voltage. High at reset selects 1.8 V and stops a 3.3 V flash from booting."
+  46: "Boot mode and ROM log output. Must be low or floating at reset to enter download mode."
+adc1: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+adc2: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+adc2_conflicts_with_wifi: false
+touch: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+dac: []
+notes:
+  19: "Native USB D-. Using it stops the USB-Serial-JTAG port."
+  20: "Native USB D+. Using it stops the USB-Serial-JTAG port."
+  33: "Octal SPI flash or PSRAM D4 on modules with octal memory (R8, R16)."
+  34: "Octal SPI flash or PSRAM D5 on modules with octal memory (R8, R16)."
+  35: "Octal SPI flash or PSRAM D6 on modules with octal memory (R8, R16)."
+  36: "Octal SPI flash or PSRAM D7 on modules with octal memory (R8, R16)."
+  37: "Octal SPI flash or PSRAM DQS on modules with octal memory (R8, R16)."
+  39: "JTAG MTCK."
+  40: "JTAG MTDO."
+  41: "JTAG MTDI."
+  42: "JTAG MTMS."

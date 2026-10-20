@@ -1,0 +1,48 @@
+name: lafvin_esp32_devkit
+title: LAFVIN ESP32 Basic Starter Kit board (ESP32 DevKit V1, 30 pins)
+chip: esp32
+flash_mb: 4
+psram_mb: 0
+link: uart0
+usb: "USB-UART bridge on UART0 (CH340 on the LAFVIN board, CP2102 on some other 30-pin boards)"
+verified: false
+sources:
+  - "30-pin ESP-WROOM-32 DevKit pinout image (esp32_wroom.png, botland, supplied by the user on 2026-10-16): header pin order"
+  - "LAFVIN ESP32 Basic Starter Kit tutorial, board pinout page"
+  - "van_sensors README, development board table"
+# The 30-pin board has no GPIO 0 (BOOT button only) and no flash pins on its
+# headers.
+pins: [1, 2, 3, 4, 5, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 25, 26, 27, 32, 33, 34, 35, 36, 39]
+labels:
+  0: "BOOT"
+  1: "TX0"
+  3: "RX0"
+  16: "RX2"
+  17: "TX2"
+  36: "VP"
+  39: "VN"
+reserved: {}
+notes:
+  2: "Blue on-board LED."
+  5: "Default VSPI CS in Arduino examples."
+  18: "Default VSPI SCK in Arduino examples."
+  19: "Default VSPI MISO in Arduino examples."
+  21: "Default I2C SDA in Arduino examples."
+  22: "Default I2C SCL in Arduino examples."
+  23: "Default VSPI MOSI in Arduino examples."
+onboard:
+  - id: led
+    gpio: 2
+    type: led
+    active_low: false
+    notes: "Blue on-board LED."
+  - id: boot_button
+    gpio: 0
+    type: button
+    active_low: true
+    notes: "BOOT button. Do not hold it at reset. GPIO 0 is not on a header."
+# Header pins from the antenna end to the USB end, with the board in portrait
+# and the parts facing you. Pin 15 of each row is at the antenna end. Source:
+# the 30-pin pinout image above.
+header_left: ["EN", 36, 39, 34, 35, 32, 33, 25, 26, 27, 14, 12, 13, "GND", "VIN"]
+header_right: [23, 22, 1, 3, 21, 19, 18, 5, 17, 16, 4, 2, 15, "GND", "3V3"]

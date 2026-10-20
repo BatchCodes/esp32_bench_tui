@@ -1,0 +1,31 @@
+# ESP32-C3 GPIO facts. Source: ESP32-C3 Series Datasheet v1.x, sections
+# "Pin Overview", "Strapping Pins" and "Peripheral Pin Configurations", and the
+# ESP-IDF GPIO and ADC API references for esp32c3.
+chip: esp32c3
+title: ESP32-C3
+gpios: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
+uart0: {tx: 21, rx: 20}
+input_only: []
+reserved:
+  12: "SPI flash HD"
+  13: "SPI flash WP"
+  14: "SPI flash CS0"
+  15: "SPI flash CLK"
+  16: "SPI flash D"
+  17: "SPI flash Q"
+strapping:
+  2: "Boot mode. Must be high at reset for a normal boot or download mode."
+  8: "Boot mode. Must be high at reset to enter download mode."
+  9: "Boot mode. Low at reset starts the ROM download mode."
+adc1: [0, 1, 2, 3, 4]
+adc2: [5]
+adc2_conflicts_with_wifi: false
+touch: []
+dac: []
+notes:
+  4: "JTAG MTMS."
+  5: "JTAG MTDI."
+  6: "JTAG MTCK."
+  7: "JTAG MTDO."
+  18: "Native USB D-. Using it stops the USB-Serial-JTAG port."
+  19: "Native USB D+. Using it stops the USB-Serial-JTAG port."

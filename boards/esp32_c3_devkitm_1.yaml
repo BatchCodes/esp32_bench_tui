@@ -1,0 +1,26 @@
+name: esp32_c3_devkitm_1
+title: Espressif ESP32-C3-DevKitM-1
+chip: esp32c3
+flash_mb: 4
+psram_mb: 0
+link: uart0
+usb: "CP2102 USB-UART bridge on UART0"
+verified: false
+sources:
+  - "Espressif ESP32-C3-DevKitM-1 user guide, header block tables J1 and J3"
+  - "ESP32-C3-DevKitM-1 user guide, header block table, https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32c3/esp32-c3-devkitm-1/"
+pins: all
+reserved: {}
+notes:
+  8: "RGB LED (WS2812) data."
+onboard:
+  - id: boot_button
+    gpio: 9
+    type: button
+    active_low: true
+    notes: "BOOT button. Do not hold it at reset."
+# Header pins from the antenna end to the USB end. J1 is on the left and J3
+# on the right, with the board in portrait and the parts facing you. The pin
+# order is from the source. The side and the end are not checked on a board yet.
+header_left: ["GND", "3V3", "3V3", 2, 3, "GND", "RST", "GND", 0, 1, 10, "GND", "5V", "5V", "GND"]
+header_right: ["GND", 21, 20, "GND", 9, 8, "GND", 7, 6, 5, 4, "GND", 18, 19, "GND"]

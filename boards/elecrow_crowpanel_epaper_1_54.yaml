@@ -1,0 +1,44 @@
+name: elecrow_crowpanel_epaper_1_54
+title: Elecrow CrowPanel ESP32 E-Paper HMI 1.54"
+chip: esp32s3
+flash_mb: 8
+psram_mb: 8
+link: uart0
+usb: "USB-C. Check if your board has a USB-UART bridge. If the board shows as /dev/ttyACM0, build the agent for the USB-Serial-JTAG console."
+verified: false
+sources:
+  - "Elecrow CrowPanel ESP32 E-Paper HMI 1.54-inch wiki, https://elecrow.com/wiki/CrowPanel_ESP32_E-Paper_HMI_1.54-inch_Display.html"
+  - "van_sensors plan 1, CrowPanel pins from the Elecrow example code"
+pins: all
+reserved:
+  7: "E-paper panel power, high is on"
+  9: "E-paper BUSY"
+  10: "E-paper RST"
+  11: "E-paper MOSI"
+  12: "E-paper SCK"
+  13: "E-paper DC"
+  14: "E-paper CS"
+  35: "Octal PSRAM"
+  36: "Octal PSRAM"
+  37: "Octal PSRAM"
+onboard:
+  - id: home_button
+    gpio: 2
+    type: button
+    active_low: true
+  - id: exit_button
+    gpio: 1
+    type: button
+    active_low: true
+  - id: rotary_up
+    gpio: 6
+    type: button
+    active_low: true
+  - id: rotary_down
+    gpio: 4
+    type: button
+    active_low: true
+  - id: rotary_ok
+    gpio: 5
+    type: button
+    active_low: true

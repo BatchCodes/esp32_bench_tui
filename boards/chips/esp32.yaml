@@ -1,0 +1,31 @@
+# ESP32 (classic) GPIO facts. Source: ESP32 Series Datasheet v4.x, sections
+# "Pin Overview", "Strapping Pins" and "Peripheral Pin Configurations", and the
+# ESP-IDF GPIO and ADC API references for esp32.
+chip: esp32
+title: ESP32
+gpios: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 25, 26, 27, 32, 33, 34, 35, 36, 37, 38, 39]
+uart0: {tx: 1, rx: 3}
+input_only: [34, 35, 36, 37, 38, 39]
+reserved:
+  6: "SPI flash CLK"
+  7: "SPI flash D0"
+  8: "SPI flash D1"
+  9: "SPI flash D2"
+  10: "SPI flash D3"
+  11: "SPI flash CMD"
+strapping:
+  0: "Boot mode. Low at reset starts the ROM download mode."
+  2: "Boot mode. Must be low or floating at reset to enter download mode."
+  5: "SDIO timing. Pulled high inside the chip."
+  12: "Flash voltage (MTDI). High at reset selects 1.8 V and stops a 3.3 V flash from booting."
+  15: "ROM log output (MTDO). Low at reset silences the boot log."
+adc1: [32, 33, 34, 35, 36, 37, 38, 39]
+adc2: [0, 2, 4, 12, 13, 14, 15, 25, 26, 27]
+adc2_conflicts_with_wifi: true
+touch: [0, 2, 4, 12, 13, 14, 15, 27, 32, 33]
+dac: [25, 26]
+notes:
+  12: "JTAG MTDI."
+  13: "JTAG MTCK."
+  14: "JTAG MTMS."
+  15: "JTAG MTDO."
