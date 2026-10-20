@@ -19,6 +19,8 @@ Commands:
   build TARGET [VARIANT]
                    Build the bench agent for TARGET (${FIRMWARE_TARGETS[*]}).
                    VARIANT adds firmware/bench_agent/sdkconfig.ci.VARIANT.
+                   Also writes merged-binary.bin, one image to flash at
+                   offset 0, for the web flasher.
   lint             Run shellcheck on the scripts, if shellcheck is installed.
   all              Run every command above, for every target.
 USAGE
@@ -74,7 +76,7 @@ build_target() {
       -D "SDKCONFIG=${APP_DIR}/${build_dir}/sdkconfig" \
       -D "SDKCONFIG_DEFAULTS=${defaults}" \
       -D "IDF_TARGET=${target}" \
-      build
+      build merge-bin
     return
   fi
 
@@ -84,7 +86,7 @@ build_target() {
     -D "SDKCONFIG=${build_dir}/sdkconfig" \
     -D "SDKCONFIG_DEFAULTS=${defaults}" \
     -D "IDF_TARGET=${target}" \
-    build
+    build merge-bin
 }
 
 run_lint() {
@@ -108,6 +110,8 @@ run_all() {
   done
 
   build_target esp32s3 usb_serial_jtag
+  build_target esp32c3 usb_serial_jtag
+  build_target esp32c6 usb_serial_jtag
 }
 
 main() {
