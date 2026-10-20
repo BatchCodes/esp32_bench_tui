@@ -1,0 +1,13 @@
+# An LED and a button on the Olimex ESP32-POE-ISO. The button is the on-board
+# BUT1. Connect an LED with a 330 ohm resistor from GPIO 4 to GND.
+board: olimex_esp32_poe_iso
+mode: agent
+report_period_ms: 50
+devices:
+  - name: led
+    type: led
+    gpio: 4
+  - name: button
+    type: button
+    onboard: button
+    pull: none

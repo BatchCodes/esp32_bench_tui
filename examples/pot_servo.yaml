@@ -1,0 +1,21 @@
+# A potentiometer, a servo and a PWM output on the Olimex ESP32-POE-ISO.
+# Connect the potentiometer wiper to GPIO 32, and its ends to 3.3 V and GND.
+# Connect the servo signal to GPIO 33. Power the servo from 5 V, not from the
+# board 3.3 V pin. Connect GND of the servo supply to GND of the board.
+board: olimex_esp32_poe_iso
+mode: agent
+devices:
+  - name: pot
+    type: adc
+    gpio: 32
+    scale: 0.001
+    units: V
+  - name: servo
+    type: servo
+    gpio: 33
+    min_us: 500
+    max_us: 2500
+  - name: dimmer
+    type: pwm
+    gpio: 13
+    freq_hz: 5000

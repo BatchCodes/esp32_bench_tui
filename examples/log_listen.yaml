@@ -1,0 +1,15 @@
+# Log mode for any firmware on the Olimex ESP32-POE-ISO.
+# The board keeps its own firmware. The TUI reads the serial log and shows
+# the values that the regex rules find. The firmware must print its log on
+# UART0 and send nothing else there.
+board: olimex_esp32_poe_iso
+mode: log
+log_values:
+  - name: dropped_events
+    pattern: 'Event queue full, dropped (\d+) events'
+  - name: free_heap
+    pattern: 'free heap (\d+)'
+    scale: 0.001
+    units: kB
+  - name: ethernet_up
+    pattern: 'Ethernet link (up|down)'

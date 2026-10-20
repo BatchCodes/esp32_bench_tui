@@ -1,0 +1,10 @@
+# The on-board LED and BOOT button of the LAFVIN ESP32 board. Needs no wiring.
+board: lafvin_esp32_devkit
+mode: agent
+devices:
+  - name: led
+    type: led
+    onboard: led
+  - name: boot
+    type: button
+    onboard: boot_button

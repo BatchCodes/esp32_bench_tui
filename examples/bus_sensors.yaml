@@ -1,0 +1,30 @@
+# Bus devices and common sensors on the Olimex ESP32-POE-ISO.
+# - I2C on the UEXT connector: SDA GPIO 13, SCL GPIO 16.
+# - A UART module (for example a GPS) on the UEXT connector: board TX GPIO 4 to
+#   the module RX, board RX GPIO 36 to the module TX.
+# - A DS18B20 on GPIO 32 and a DHT22 on GPIO 33. Each needs a 4.7 kOhm pull-up
+#   resistor from the data line to 3.3 V.
+# - A pulse counter on GPIO 35, for example a hall flow sensor. GPIO 35 has no
+#   internal pull resistor, so add an external one.
+board: olimex_esp32_poe_iso
+mode: agent
+devices:
+  - name: i2c
+    type: i2c
+    sda: 13
+    scl: 16
+    freq_hz: 100000
+  - name: gps
+    type: uart
+    tx: 4
+    rx: 36
+    baud: 9600
+  - name: water
+    type: ds18b20
+    gpio: 32
+  - name: room
+    type: dht22
+    gpio: 33
+  - name: flow
+    type: counter
+    gpio: 35

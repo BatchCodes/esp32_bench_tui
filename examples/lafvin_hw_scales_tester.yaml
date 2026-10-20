@@ -1,0 +1,20 @@
+# Gaggiuino hardware scales tester: two HX711 load cell amplifiers on one clock.
+# Board: a 30-pin ESP32 DevKit V1 (the LAFVIN profile).
+#
+# Power the scales from the 3V3 pin, not from 5 V. The HX711 data lines and
+# the 1 kOhm clock pull-up on the scales stripboard follow the supply, and the
+# ESP32 inputs take at most 3.3 V. The HX711 works from 2.6 V to 5.5 V.
+#
+#   scales VCC     -> 3V3
+#   scales GND     -> GND
+#   scales C1/C2   -> D18 (clock)
+#   scales D1      -> D19
+#   scales D2      -> D21
+board: lafvin_esp32_devkit
+mode: agent
+devices:
+  - name: scales
+    type: hx711
+    clock: 18
+    data: 19
+    data2: 21
