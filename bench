@@ -1,0 +1,38 @@
+#! /bin/bash
+# Run the bench host tool from the repository, with no install. Uses the
+# virtual environment in .venv when it exists. If Python or its packages
+# (pyserial, PyYAML, Textual) are missing, or BENCH_DOCKER=1 is set, it runs
+# the tool in Docker through scripts/bench_docker.sh.
+
+REPO_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+VENV_PYTHON="${REPO_DIR}/.venv/bin/python"
+BENCH_DOCKER_SCRIPT="${REPO_DIR}/scripts/bench_docker.sh"
+REQUIRED_MODULES="import serial, textual, yaml"
+
+main() {
+  local python="python3"
+
+  if [[ -x "${VENV_PYTHON}" ]]; then
+    python="${VENV_PYTHON}"
+  fi
+
+  if [[ "${BENCH_DOCKER:-0}" == "1" ]]; then
+    exec "${BENCH_DOCKER_SCRIPT}" "$@"
+  fi
+
+  if ! command -v "${python}" &>/dev/null || ! "${python}" -c "${REQUIRED_MODULES}" &>/dev/null; then
+    if command -v docker &>/dev/null; then
+      printf 'Python packages for the host tool are missing. Running in Docker.\n' >&2
+      exec "${BENCH_DOCKER_SCRIPT}" "$@"
+    fi
+    printf 'error: the host tool needs pyserial, PyYAML and textual, or Docker. Run ./scripts/install.sh, or install Docker.\n' >&2
+    return 1
+  fi
+
+  PYTHONPATH="${REPO_DIR}/host${PYTHONPATH:+:${PYTHONPATH}}" exec "${python}" -m bench "$@"
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  set -euo pipefail
+  main "$@"
+fi
